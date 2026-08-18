@@ -474,12 +474,32 @@
     border-top:1px solid var(--line);
     padding-top:20px;
   }
+  .reading-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:12px;
+  }
   .reading h2{
     font-family:'Fraunces', serif;
     font-weight:500;
     font-size:16px;
-    margin:0 0 12px;
+    margin:0;
   }
+  .copy-btn{
+    background:rgba(239,231,218,0.06);
+    border:1px solid var(--line);
+    border-radius:999px;
+    color:var(--paper-dim);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:11.5px;
+    font-weight:600;
+    padding:5px 12px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .copy-btn:hover{ background:rgba(239,231,218,0.12); color:var(--paper); }
+  .copy-btn:disabled{ opacity:0.6; cursor:default; }
   .reading-empty{
     font-size:13px;
     color:var(--paper-dim);
@@ -636,7 +656,10 @@
 
   <!-- today's reading -->
   <div class="reading">
-    <h2>Today's reading</h2>
+    <div class="reading-head">
+      <h2>Today's reading</h2>
+      <button class="copy-btn" id="copy-reading-btn">Copy as text</button>
+    </div>
     <div id="reading-list">
       <p class="reading-empty">Nothing logged yet — pick a word above to start.</p>
     </div>
@@ -1124,6 +1147,56 @@
     `;
     return item;
   }
+
+  // ---- copy today's reading as plain text ----
+  function formatEntryTime(iso){
+    return new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  }
+  function formatTodayHeader(){
+    return new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  function buildReadingText(){
+    const todays = allEntries.filter(e => e.date === todayKey());
+    const lines = [`Check-In Compass \u2014 ${formatTodayHeader()}`, ''];
+    if(!todays.length){
+      lines.push('Nothing logged yet today.');
+    } else {
+      todays.forEach((e, i) => {
+        const label = e.category.charAt(0).toUpperCase() + e.category.slice(1);
+        lines.push(`${label.toUpperCase()} (${formatEntryTime(e.timestamp)}) \u2014 ${e.word}`);
+        lines.push([e.activity, e.company, e.location].join(' \u00b7 '));
+        if(e.trigger) lines.push(e.trigger);
+        if(i < todays.length - 1) lines.push('');
+      });
+    }
+    return lines.join('\n');
+  }
+  function fallbackCopy(text, done){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try{ document.execCommand('copy'); done(); } catch(e){ /* silent — clipboard unavailable */ }
+    document.body.removeChild(ta);
+  }
+  document.getElementById('copy-reading-btn').addEventListener('click', () => {
+    const btn = document.getElementById('copy-reading-btn');
+    const text = buildReadingText();
+    const done = () => {
+      const original = btn.textContent;
+      btn.textContent = 'Copied';
+      btn.disabled = true;
+      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1500);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
+  });
 
   // ---- context intake: answered once, before the first quadrant ----
   ['activity', 'company', 'location'].forEach(renderChipRow);
