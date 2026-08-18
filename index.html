@@ -545,6 +545,11 @@
     letter-spacing:0.1em;
     color:var(--paper-dim);
   }
+  .ri-time{
+    font-size:10.5px;
+    color:var(--paper-dim);
+    opacity:0.7;
+  }
   .reading-item .val{
     font-family:'Fraunces', serif;
     font-size:16px;
@@ -1226,6 +1231,7 @@
         <div class="ri-top">
           <div class="dot" style="background:${dotColor[entry.category]}"></div>
           <div class="col">${entry.category}</div>
+          <div class="ri-time">${formatEntryTime(entry.timestamp)}</div>
           <button class="ri-delete" type="button" aria-label="Delete entry">\u00d7</button>
         </div>
         <div class="val">${escapeHtml(entry.word)}</div>
