@@ -324,6 +324,15 @@
     cursor:pointer;
   }
   .next-arrow:hover{ opacity:0.88; }
+  .next-arrow:disabled{
+    opacity:0.28;
+    cursor:not-allowed;
+  }
+  .next-arrow:disabled:hover{ opacity:0.28; }
+
+  #context-intake{
+    margin-top:8px;
+  }
   .card label{
     display:block;
     font-size:10.5px;
@@ -526,14 +535,37 @@
 <div class="wrap">
 
   <header>
-    <p class="eyebrow">Morning session</p>
     <h1>Check-In Compass</h1>
-    <p class="sub">Same precision as the mood meter, now covering the whole map. Choose a quadrant, then find the word that fits — read what it means, note what put you there.</p>
+    <p class="sub">First, note the context.</p>
+    <p class="sub">Choose a quadrant, then find the word that fits — read what it means, note a trigger that put you there.</p>
   </header>
 
   <p class="all-done-msg" id="all-done-msg" style="display:none;">Physical, Mental, and Emotional are all logged for today. Here's your reading.</p>
 
-  <div id="checkin-flow">
+  <!-- context intake: asked once, before the first quadrant -->
+  <div id="context-intake">
+    <div class="field-group">
+      <div class="field-label"><span>What were you doing?</span></div>
+      <div class="chip-row" id="chips-activity"></div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label"><span>Who were you with?</span></div>
+      <div class="chip-row" id="chips-company"></div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label"><span>Where were you?</span></div>
+      <div class="chip-row" id="chips-location"></div>
+    </div>
+
+    <div class="confirm-row">
+      <span class="confirm-hint">Same for all three check-ins</span>
+      <button class="next-arrow" id="intake-continue" aria-label="Continue to check-in" disabled>→</button>
+    </div>
+  </div>
+
+  <div id="checkin-flow" style="display:none;">
   <div class="tabs">
     <button class="tab active" data-tab="physical">Physical<span class="tag">Energy · Ease</span></button>
     <button class="tab" data-tab="mental">Mental<span class="tag">Clarity · Direction</span></button>
@@ -594,21 +626,6 @@
       </div>
 
       <div class="field-group">
-        <div class="field-label"><span>What were you doing?</span></div>
-        <div class="chip-row" id="chips-activity"></div>
-      </div>
-
-      <div class="field-group">
-        <div class="field-label"><span>Who were you with?</span></div>
-        <div class="chip-row" id="chips-company"></div>
-      </div>
-
-      <div class="field-group">
-        <div class="field-label"><span>Where were you?</span></div>
-        <div class="chip-row" id="chips-location"></div>
-      </div>
-
-      <div class="field-group">
         <div class="field-label">
           <span>What might be causing you to be feeling <span id="trigger-word"></span>?</span>
           <span class="optional-tag">optional</span>
@@ -617,9 +634,8 @@
       </div>
 
       <div class="save-row">
-        <button class="save-btn" id="save-btn" disabled>Add to today's reading</button>
+        <button class="save-btn" id="save-btn">Add to today's reading</button>
       </div>
-      <p class="save-hint" id="save-hint">Add what, who, and where to save.</p>
     </div>
   </div>
   </div>
@@ -879,7 +895,7 @@
   function selectChip(field, val){
     contextAnswers[field] = val;
     renderChipRow(field);
-    updateSaveState();
+    updateIntakeState();
   }
 
   function showChipInput(field){
@@ -904,24 +920,19 @@
       contextAnswers[field] = val;
       wrap.remove();
       renderChipRow(field);
-      updateSaveState();
+      updateIntakeState();
     };
     wrap.querySelector('.chip-confirm').addEventListener('click', confirm);
     input.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); confirm(); } });
   }
 
-  function resetContext(){
-    contextAnswers = { activity: null, company: null, location: null };
-    ['activity', 'company', 'location'].forEach(renderChipRow);
+  function resetTrigger(){
     document.getElementById('card-trigger').value = '';
-    updateSaveState();
   }
 
-  function updateSaveState(){
+  function updateIntakeState(){
     const ready = contextAnswers.activity && contextAnswers.company && contextAnswers.location;
-    const btn = document.getElementById('save-btn');
-    btn.disabled = !ready;
-    document.getElementById('save-hint').style.display = ready ? 'none' : '';
+    document.getElementById('intake-continue').disabled = !ready;
   }
 
   // ---- card is a two-step replacement for the compass, not an addition below it ----
@@ -1010,7 +1021,7 @@
     document.getElementById('card-def').textContent = currentDef;
     document.getElementById('context-word-tag').textContent = currentWord;
     document.getElementById('trigger-word').textContent = currentWord.charAt(0).toLowerCase() + currentWord.slice(1);
-    resetContext();
+    resetTrigger();
     showCardConfirm();
     document.getElementById('card').classList.add('show');
     // compass stays visible here — only the arrow collapses it into context capture
@@ -1022,7 +1033,7 @@
     showCardConfirm();
     currentWord = null;
     currentDef = null;
-    resetContext();
+    resetTrigger();
   }
 
   function backFromContext(){
@@ -1037,7 +1048,7 @@
     ALL_CATEGORIES.forEach(showCompassStage);
     currentWord = null;
     currentDef = null;
-    resetContext();
+    resetTrigger();
   }
 
   function resetPanel(category){
@@ -1077,6 +1088,22 @@
   const CATEGORY_ORDER = ['physical', 'mental', 'emotional'];
   const completed = { physical: false, mental: false, emotional: false };
 
+  const STORAGE_KEY_TODAY_CONTEXT = 'checkinCompass.todayContext';
+  let sessionContext = null; // {activity, company, location} — locked in once per sitting
+
+  function saveTodayContext(ctx){
+    try{ localStorage.setItem(STORAGE_KEY_TODAY_CONTEXT, JSON.stringify({ date: todayKey(), ...ctx })); }
+    catch(e){ /* non-fatal */ }
+  }
+  function loadTodayContext(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY_TODAY_CONTEXT);
+      if(!raw) return null;
+      const stored = JSON.parse(raw);
+      return stored.date === todayKey() ? stored : null;
+    } catch(e){ return null; }
+  }
+
   function advanceFlow(justCompleted){
     completed[justCompleted] = true;
     const next = CATEGORY_ORDER.find(c => !completed[c]);
@@ -1104,9 +1131,20 @@
     return item;
   }
 
-  document.getElementById('save-btn').addEventListener('click', () => {
-    if(!currentWord) return;
+  // ---- context intake: answered once, before the first quadrant ----
+  ['activity', 'company', 'location'].forEach(renderChipRow);
+  updateIntakeState();
+
+  document.getElementById('intake-continue').addEventListener('click', () => {
     if(!contextAnswers.activity || !contextAnswers.company || !contextAnswers.location) return;
+    sessionContext = { activity: contextAnswers.activity, company: contextAnswers.company, location: contextAnswers.location };
+    saveTodayContext(sessionContext);
+    document.getElementById('context-intake').style.display = 'none';
+    document.getElementById('checkin-flow').style.display = '';
+  });
+
+  document.getElementById('save-btn').addEventListener('click', () => {
+    if(!currentWord || !sessionContext) return;
     const savedCategory = currentCategory;
     const trigger = document.getElementById('card-trigger').value.trim();
 
@@ -1115,9 +1153,9 @@
       timestamp: new Date().toISOString(),
       category: savedCategory,
       word: currentWord,
-      activity: contextAnswers.activity,
-      company: contextAnswers.company,
-      location: contextAnswers.location,
+      activity: sessionContext.activity,
+      company: sessionContext.company,
+      location: sessionContext.location,
       trigger: trigger
     };
     allEntries.push(entry);
@@ -1144,15 +1182,32 @@
       completed[c] = todays.some(e => e.category === c);
     });
 
-    if(CATEGORY_ORDER.every(c => completed[c])){
+    const allDone = CATEGORY_ORDER.every(c => completed[c]);
+    if(allDone){
+      document.getElementById('context-intake').style.display = 'none';
       document.getElementById('checkin-flow').style.display = 'none';
       document.getElementById('all-done-msg').style.display = '';
-    } else {
+      return;
+    }
+
+    // recover this sitting's context — from storage, or from today's first entry as a fallback
+    const stored = loadTodayContext();
+    if(stored){
+      sessionContext = { activity: stored.activity, company: stored.company, location: stored.location };
+    } else if(todays.length){
+      sessionContext = { activity: todays[0].activity, company: todays[0].company, location: todays[0].location };
+    }
+
+    if(sessionContext){
+      document.getElementById('context-intake').style.display = 'none';
+      document.getElementById('checkin-flow').style.display = '';
       const next = CATEGORY_ORDER.find(c => !completed[c]);
       if(next !== 'physical') switchTab(next);
     }
+    // otherwise: context-intake stays visible (its default state) and checkin-flow stays hidden
   }
   hydrateToday();
+
 
   // ---- offline: register the service worker ----
   if('serviceWorker' in navigator){
