@@ -543,6 +543,50 @@
     margin-top:5px;
     line-height:1.5;
   }
+  .ri-delete{
+    margin-left:auto;
+    background:none;
+    border:none;
+    color:var(--paper-dim);
+    font-size:17px;
+    line-height:1;
+    padding:2px 4px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .ri-delete:hover{ color:var(--paper); }
+  .ri-confirm-text{
+    font-size:13px;
+    color:var(--paper);
+    margin:0 0 10px;
+  }
+  .ri-confirm-actions{
+    display:flex;
+    gap:8px;
+  }
+  .ri-cancel{
+    background:rgba(239,231,218,0.06);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:6px 14px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:12.5px;
+    color:var(--paper);
+    cursor:pointer;
+  }
+  .ri-cancel:hover{ background:rgba(239,231,218,0.12); }
+  .ri-confirm-delete{
+    background:var(--emo-3);
+    border:none;
+    border-radius:999px;
+    padding:6px 14px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    color:var(--paper);
+    cursor:pointer;
+  }
+  .ri-confirm-delete:hover{ opacity:0.88; }
 </style>
 </head>
 <body>
@@ -845,6 +889,10 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
+  function makeId(){
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
   function loadEntries(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY_ENTRIES);
@@ -874,6 +922,12 @@
   }
 
   let allEntries = loadEntries();
+  // backfill ids onto any entries saved before delete existed
+  (function backfillIds(){
+    let changed = false;
+    allEntries.forEach(e => { if(!e.id){ e.id = makeId(); changed = true; } });
+    if(changed) saveEntries(allEntries);
+  })();
 
   // ---- structured context capture: shared across all three realms ----
   const CONTEXT_FIELDS = {
@@ -1136,16 +1190,66 @@
     const contextLine = [entry.activity, entry.company, entry.location].join(' \u00b7 ');
     const item = document.createElement('div');
     item.className = 'reading-item';
+    item.dataset.id = entry.id;
     item.innerHTML = `
-      <div class="ri-top">
-        <div class="dot" style="background:${dotColor[entry.category]}"></div>
-        <div class="col">${entry.category}</div>
+      <div class="ri-normal">
+        <div class="ri-top">
+          <div class="dot" style="background:${dotColor[entry.category]}"></div>
+          <div class="col">${entry.category}</div>
+          <button class="ri-delete" type="button" aria-label="Delete entry">\u00d7</button>
+        </div>
+        <div class="val">${escapeHtml(entry.word)}</div>
+        <div class="note">${escapeHtml(contextLine)}</div>
+        ${entry.trigger ? `<div class="note"><em>${escapeHtml(entry.trigger)}</em></div>` : ''}
       </div>
-      <div class="val">${escapeHtml(entry.word)}</div>
-      <div class="note">${escapeHtml(contextLine)}</div>
-      ${entry.trigger ? `<div class="note"><em>${escapeHtml(entry.trigger)}</em></div>` : ''}
+      <div class="ri-confirm" style="display:none;">
+        <p class="ri-confirm-text">Delete this entry?</p>
+        <div class="ri-confirm-actions">
+          <button class="ri-cancel" type="button">Cancel</button>
+          <button class="ri-confirm-delete" type="button">Delete</button>
+        </div>
+      </div>
     `;
+
+    const normalView = item.querySelector('.ri-normal');
+    const confirmView = item.querySelector('.ri-confirm');
+
+    item.querySelector('.ri-delete').addEventListener('click', () => {
+      normalView.style.display = 'none';
+      confirmView.style.display = '';
+    });
+    item.querySelector('.ri-cancel').addEventListener('click', () => {
+      confirmView.style.display = 'none';
+      normalView.style.display = '';
+    });
+    item.querySelector('.ri-confirm-delete').addEventListener('click', () => {
+      deleteEntry(entry, item);
+    });
+
     return item;
+  }
+
+  function deleteEntry(entry, itemEl){
+    allEntries = allEntries.filter(e => e.id !== entry.id);
+    saveEntries(allEntries);
+    itemEl.remove();
+
+    if(!readingList.children.length){
+      readingList.innerHTML = '<p class="reading-empty">Nothing logged yet — pick a word above to start.</p>';
+    }
+
+    const todays = allEntries.filter(e => e.date === todayKey());
+    const stillAllDone = CATEGORY_ORDER.every(c => todays.some(e => e.category === c));
+    const flowHidden = document.getElementById('checkin-flow').style.display === 'none';
+
+    CATEGORY_ORDER.forEach(c => { completed[c] = todays.some(e => e.category === c); });
+
+    if(!stillAllDone && flowHidden){
+      // that realm is genuinely unfinished again — reopen the flow on it
+      document.getElementById('all-done-msg').style.display = 'none';
+      document.getElementById('checkin-flow').style.display = '';
+      switchTab(CATEGORY_ORDER.find(c => !completed[c]));
+    }
   }
 
   // ---- copy today's reading as plain text ----
@@ -1216,6 +1320,7 @@
     const trigger = document.getElementById('card-trigger').value.trim();
 
     const entry = {
+      id: makeId(),
       date: todayKey(),
       timestamp: new Date().toISOString(),
       category: savedCategory,

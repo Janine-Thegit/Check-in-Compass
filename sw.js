@@ -1,7 +1,7 @@
 // Check-In Compass — service worker
 // Caches the app shell so it opens and works with no connection.
 // Bump this on any deploy that changes cached files, to invalidate old caches.
-const CACHE_NAME = 'checkin-compass-v4';
+const CACHE_NAME = 'checkin-compass-v5';
 
 const APP_SHELL = [
   './index.html',
