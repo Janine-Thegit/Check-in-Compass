@@ -1,0 +1,15 @@
+{
+  "name": "Check-In Compass",
+  "short_name": "Compass",
+  "description": "A daily physical, mental, and emotional check-in — a companion to the mood meter.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#18140F",
+  "theme_color": "#18140F",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

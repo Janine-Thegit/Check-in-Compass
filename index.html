@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Check-In Compass</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#18140F">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Compass">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#18140F;
+    --paper:#EFE7DA;
+    --paper-dim:#C9BEAC;
+    --line:rgba(239,231,218,0.14);
+    --line-strong:rgba(239,231,218,0.28);
+
+    /* physical: ember / clay family, intensity by energy */
+    --phys-1:#8A5A3D; /* depleted+braced */
+    --phys-2:#B97A4C; /* depleted+released */
+    --phys-3:#D68A3E; /* charged+braced */
+    --phys-4:#E8A93F; /* charged+released */
+
+    /* mental: ink / slate family, intensity by clarity */
+    --ment-1:#3E5266; /* foggy+scattered */
+    --ment-2:#4E7088; /* foggy+anchored */
+    --ment-3:#5D7FA8; /* sharp+scattered */
+    --ment-4:#7FA6C9; /* sharp+anchored */
+
+    /* emotional: mood-meter family, muted to match the ink/paper palette */
+    --emo-1:#4A5C8C; /* low energy + unpleasant */
+    --emo-2:#4E9270; /* low energy + pleasant */
+    --emo-3:#B5504C; /* high energy + unpleasant */
+    --emo-4:#D6AC42; /* high energy + pleasant */
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{
+    max-width:520px;
+    margin:0 auto;
+    padding:28px 18px 60px;
+  }
+
+  header{
+    margin-bottom:22px;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+    margin:0 0 6px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:500;
+    font-size:28px;
+    line-height:1.15;
+    margin:0 0 4px;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    font-size:13.5px;
+    color:var(--paper-dim);
+    margin:0;
+    line-height:1.5;
+  }
+
+  .all-done-msg{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:15px;
+    line-height:1.5;
+    color:var(--paper);
+    margin:0 0 8px;
+  }
+
+  /* tabs */
+  .tabs{
+    display:flex;
+    gap:8px;
+    margin:22px 0 20px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:0;
+  }
+  .tab{
+    background:none;
+    border:none;
+    color:var(--paper-dim);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14px;
+    font-weight:500;
+    padding:8px 4px 12px;
+    cursor:pointer;
+    position:relative;
+    letter-spacing:0.01em;
+  }
+  .tab.active{ color:var(--paper); }
+  .tab.active::after{
+    content:'';
+    position:absolute;
+    left:0; right:0; bottom:-1px;
+    height:2px;
+    background:var(--paper);
+  }
+  .tab .tag{
+    display:block;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--paper-dim);
+    margin-top:2px;
+  }
+
+  /* axis frame */
+  .compass{
+    position:relative;
+    border:1px solid var(--line-strong);
+    border-radius:2px;
+    overflow:hidden;
+  }
+  .quadgrid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr 1fr;
+  }
+  .quad{
+    padding:16px 12px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    gap:8px;
+    min-height:150px;
+    border-right:1px solid rgba(0,0,0,0.18);
+    border-bottom:1px solid rgba(0,0,0,0.18);
+    cursor:pointer;
+    background:none;
+    text-align:left;
+    font-family:inherit;
+    color:var(--ink);
+    transition:filter 0.12s ease;
+  }
+  .quad:hover, .quad:focus-visible{ filter:brightness(1.06); }
+  .quad:nth-child(2){ border-right:none; }
+  .quad:nth-child(4){ border-right:none; }
+  .quad:nth-child(3), .quad:nth-child(4){ border-bottom:none; }
+
+  .quad-label{
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    opacity:0.72;
+  }
+
+  /* stage one: plain quadrant title, no preview words, no count —
+     mirrors the coarse "High Energy Unpleasant" style first screen */
+  .quad{
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+  }
+  .quad-title{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:20px;
+    line-height:1.25;
+    max-width:11ch;
+  }
+
+  .stage-prompt{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:17px;
+    line-height:1.4;
+    text-align:center;
+    color:var(--paper);
+    margin:0 0 14px;
+    padding:0 6px;
+  }
+
+  /* stage two: expanded word panel */
+  .wordpanel{
+    display:none;
+    padding:16px 14px 18px;
+  }
+  .wordpanel.show{ display:block; }
+  .panel-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .back-btn{
+    background:rgba(0,0,0,0.16);
+    border:none;
+    border-radius:999px;
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:12px;
+    font-weight:600;
+    padding:6px 12px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .back-btn:hover{ background:rgba(0,0,0,0.26); }
+  .panel-head .quad-label{ opacity:0.85; }
+
+  .word-wrap{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  .word{
+    background:rgba(0,0,0,0.14);
+    border:1px solid rgba(0,0,0,0.16);
+    border-radius:999px;
+    padding:7px 13px;
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:14.5px;
+    color:var(--ink);
+    cursor:pointer;
+    text-align:left;
+    width:fit-content;
+    transition:transform 0.12s ease, background 0.12s ease;
+  }
+  .word:hover, .word:focus-visible{
+    background:rgba(0,0,0,0.24);
+    transform:translateY(-1px);
+  }
+  .word.selected{
+    background:var(--ink);
+    color:var(--paper);
+    border-color:var(--ink);
+  }
+
+  /* definition card */
+  .card{
+    margin-top:16px;
+    border:1px solid var(--line-strong);
+    border-radius:2px;
+    padding:16px 16px 18px;
+    display:none;
+  }
+  .card.show{ display:block; }
+  .card .word-title{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:20px;
+    margin:0 0 6px;
+  }
+  .card .def{
+    font-size:14px;
+    line-height:1.55;
+    color:var(--paper-dim);
+    margin:0 0 14px;
+  }
+
+  .card-topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+  }
+  .card-back-btn{
+    background:none;
+    border:none;
+    color:var(--paper-dim);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    padding:4px 0;
+    cursor:pointer;
+    letter-spacing:0.01em;
+  }
+  .card-back-btn:hover{ color:var(--paper); }
+  .context-word-tag{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:15px;
+    color:var(--paper);
+  }
+
+  .confirm-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:8px;
+  }
+  .confirm-hint{
+    font-size:12.5px;
+    color:var(--paper-dim);
+  }
+  .next-arrow{
+    width:48px;
+    height:48px;
+    flex-shrink:0;
+    border-radius:50%;
+    background:var(--paper);
+    color:var(--ink);
+    border:none;
+    font-size:20px;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+  }
+  .next-arrow:hover{ opacity:0.88; }
+  .card label{
+    display:block;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--paper-dim);
+    margin-bottom:6px;
+  }
+
+  /* structured context: chip fields */
+  .field-group{ margin-bottom:16px; }
+  .field-label{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--paper-dim);
+    margin-bottom:8px;
+  }
+  .field-label .optional-tag{
+    text-transform:none;
+    letter-spacing:0;
+    font-style:italic;
+    opacity:0.75;
+    font-size:11.5px;
+  }
+  .chip-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+  }
+  .chip{
+    background:rgba(239,231,218,0.06);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:6px 13px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:13px;
+    color:var(--paper);
+    cursor:pointer;
+  }
+  .chip:hover{ background:rgba(239,231,218,0.12); }
+  .chip.selected{
+    background:var(--paper);
+    color:var(--ink);
+    border-color:var(--paper);
+    font-weight:600;
+  }
+  .chip-add{
+    background:none;
+    border:1px dashed var(--line-strong);
+    border-radius:999px;
+    padding:6px 13px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:13px;
+    color:var(--paper-dim);
+    cursor:pointer;
+  }
+  .chip-add:hover{ color:var(--paper); border-color:var(--paper-dim); }
+  .chip-input-row{
+    display:flex;
+    gap:6px;
+    margin-top:8px;
+  }
+  .chip-input-row input{
+    flex:1;
+    background:rgba(239,231,218,0.05);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:6px 13px;
+    color:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:13px;
+  }
+  .chip-input-row input::placeholder{ color:rgba(239,231,218,0.32); }
+  .chip-confirm{
+    background:var(--paper);
+    color:var(--ink);
+    border:none;
+    border-radius:999px;
+    padding:6px 15px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+
+  .card textarea{
+    width:100%;
+    background:rgba(239,231,218,0.05);
+    border:1px solid var(--line);
+    border-radius:2px;
+    color:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:13.5px;
+    padding:10px 12px;
+    resize:vertical;
+    min-height:56px;
+    line-height:1.5;
+  }
+  .card textarea::placeholder{ color:rgba(239,231,218,0.32); }
+
+  .save-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:10px;
+  }
+  .save-btn{
+    background:var(--paper);
+    color:var(--ink);
+    border:none;
+    border-radius:999px;
+    padding:8px 18px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    cursor:pointer;
+    letter-spacing:0.01em;
+  }
+  .save-btn:hover{ opacity:0.88; }
+  .save-btn:disabled{
+    opacity:0.32;
+    cursor:not-allowed;
+  }
+  .save-hint{
+    font-size:11.5px;
+    color:var(--paper-dim);
+    text-align:right;
+    margin:6px 0 0;
+    font-style:italic;
+  }
+
+  /* today's reading */
+  .reading{
+    margin-top:34px;
+    border-top:1px solid var(--line);
+    padding-top:20px;
+  }
+  .reading h2{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:16px;
+    margin:0 0 12px;
+  }
+  .reading-empty{
+    font-size:13px;
+    color:var(--paper-dim);
+    font-style:italic;
+  }
+  #reading-list{
+    display:flex;
+    gap:12px;
+    overflow-x:auto;
+    padding:2px 2px 10px;
+    scroll-snap-type:x proximity;
+    -webkit-overflow-scrolling:touch;
+  }
+  .reading-item{
+    flex:0 0 auto;
+    width:172px;
+    scroll-snap-align:start;
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:13px 14px 15px;
+  }
+  .reading-item .ri-top{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    margin-bottom:6px;
+  }
+  .dot{
+    width:8px; height:8px;
+    border-radius:50%;
+    flex-shrink:0;
+  }
+  .reading-item .col{
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--paper-dim);
+  }
+  .reading-item .val{
+    font-family:'Fraunces', serif;
+    font-size:16px;
+    font-weight:500;
+  }
+  .reading-item .note{
+    font-size:12.5px;
+    color:var(--paper-dim);
+    margin-top:5px;
+    line-height:1.5;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Morning session</p>
+    <h1>Check-In Compass</h1>
+    <p class="sub">Same precision as the mood meter, now covering the whole map. Choose a quadrant, then find the word that fits — read what it means, note what put you there.</p>
+  </header>
+
+  <p class="all-done-msg" id="all-done-msg" style="display:none;">Physical, Mental, and Emotional are all logged for today. Here's your reading.</p>
+
+  <div id="checkin-flow">
+  <div class="tabs">
+    <button class="tab active" data-tab="physical">Physical<span class="tag">Energy · Ease</span></button>
+    <button class="tab" data-tab="mental">Mental<span class="tag">Clarity · Direction</span></button>
+    <button class="tab" data-tab="emotional">Emotional<span class="tag">Energy · Mood</span></button>
+  </div>
+
+  <!-- PHYSICAL -->
+  <div class="panel" id="panel-physical" data-category="physical">
+    <div class="compass-stage">
+      <p class="stage-prompt">Tap the zone that best describes how your body feels right now.</p>
+      <div class="compass">
+        <div class="quadgrid"></div>
+        <div class="wordpanel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENTAL -->
+  <div class="panel" id="panel-mental" data-category="mental" style="display:none;">
+    <div class="compass-stage">
+      <p class="stage-prompt">Tap the zone that best describes how your mind feels right now.</p>
+      <div class="compass">
+        <div class="quadgrid"></div>
+        <div class="wordpanel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMOTIONAL -->
+  <div class="panel" id="panel-emotional" data-category="emotional" style="display:none;">
+    <div class="compass-stage">
+      <p class="stage-prompt">Tap the zone that best describes how you feel right now.</p>
+      <div class="compass">
+        <div class="quadgrid"></div>
+        <div class="wordpanel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- definition / context capture card: replaces the compass-stage in place -->
+  <div class="card" id="card">
+    <div id="card-confirm">
+      <div class="card-topbar">
+        <button class="card-back-btn" id="card-back-1">‹ Back</button>
+      </div>
+      <p class="word-title" id="card-word"></p>
+      <p class="def" id="card-def"></p>
+      <div class="confirm-row">
+        <span class="confirm-hint">Log this check-in</span>
+        <button class="next-arrow" id="next-arrow" aria-label="Continue to context">→</button>
+      </div>
+    </div>
+
+    <div id="card-context" style="display:none;">
+      <div class="card-topbar">
+        <button class="card-back-btn" id="card-back-2">‹ Back</button>
+        <span class="context-word-tag" id="context-word-tag"></span>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label"><span>What were you doing?</span></div>
+        <div class="chip-row" id="chips-activity"></div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label"><span>Who were you with?</span></div>
+        <div class="chip-row" id="chips-company"></div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label"><span>Where were you?</span></div>
+        <div class="chip-row" id="chips-location"></div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span>What might be causing you to be feeling <span id="trigger-word"></span>?</span>
+          <span class="optional-tag">optional</span>
+        </div>
+        <textarea id="card-trigger" placeholder="A line or two, if something specific led here…"></textarea>
+      </div>
+
+      <div class="save-row">
+        <button class="save-btn" id="save-btn" disabled>Add to today's reading</button>
+      </div>
+      <p class="save-hint" id="save-hint">Add what, who, and where to save.</p>
+    </div>
+  </div>
+  </div>
+
+  <!-- today's reading -->
+  <div class="reading">
+    <h2>Today's reading</h2>
+    <div id="reading-list">
+      <p class="reading-empty">Nothing logged yet — pick a word above to start.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ---- data: quadrants, coarse label first, then the fine word set ----
+  const DATA = {
+    physical: [
+      {
+        key:'cb', label:'charged · braced', title:'Charged,<br>Braced', color:'var(--phys-3)',
+        words:[
+          {w:'Wired', d:'Buzzing with nervous energy, hard to settle into stillness.'},
+          {w:'Keyed-up', d:'Primed and alert, muscles ready before they\u2019re needed.'},
+          {w:'Restless', d:'Unable to find a comfortable position, the body wants to move.'},
+          {w:'Jittery', d:'Small involuntary tension, shaky at the edges.'},
+          {w:'Tense', d:'Held tight, a low simmer of physical alertness.'},
+          {w:'Agitated', d:'Stirred up, unable to settle into ease.'},
+          {w:'Frazzled', d:'Overworked and fraying at the edges.'},
+          {w:'Amped', d:'Pumped up, energy running ahead of purpose.'}
+        ]
+      },
+      {
+        key:'cr', label:'charged · released', title:'Charged,<br>Released', color:'var(--phys-4)',
+        words:[
+          {w:'Vital', d:'Strong and capable, the body meeting the day with ease.'},
+          {w:'Limber', d:'Joints and muscles moving freely, well warmed.'},
+          {w:'Capable', d:'Trusting the body to do what\u2019s asked of it today.'},
+          {w:'Energised', d:'Charged and ready, momentum already built in.'},
+          {w:'Vibrant', d:'Full-bodied aliveness, colour high.'},
+          {w:'Robust', d:'Sturdy and sound, built for the day.'},
+          {w:'Alive', d:'Every sense switched on and present.'},
+          {w:'Buoyant', d:'Light and lifted, carrying you along.'}
+        ]
+      },
+      {
+        key:'db', label:'depleted · braced', title:'Depleted,<br>Braced', color:'var(--phys-1)',
+        words:[
+          {w:'Weary', d:'Worn down, each movement costs more than it should.'},
+          {w:'Achy', d:'Specific, localised soreness making itself known.'},
+          {w:'Stiff', d:'Reduced range, movement meets resistance.'},
+          {w:'Drained', d:'Reserves spent, running on very little.'},
+          {w:'Sore', d:'Tender in specific places, tissue asking for rest.'},
+          {w:'Fatigued', d:'Beyond tired \u2014 the kind sleep alone won\u2019t fix.'},
+          {w:'Taut', d:'Pulled tight, little give left in the body.'},
+          {w:'Brittle', d:'Close to the edge, easily tipped further.'}
+        ]
+      },
+      {
+        key:'dr', label:'depleted · released', title:'Depleted,<br>Released', color:'var(--phys-2)',
+        words:[
+          {w:'Languid', d:'Unhurried heaviness, in no rush to move.'},
+          {w:'Heavy', d:'Limbs carrying more weight than usual, grounded low.'},
+          {w:'Rested', d:'Recovered \u2014 the good kind of stillness.'},
+          {w:'Loose', d:'Unclenched, nothing held or braced.'},
+          {w:'Sluggish', d:'Slow to start, moving through treacle.'},
+          {w:'Mellow', d:'Soft-edged and unhurried, nothing pressing.'},
+          {w:'Slack', d:'Let go entirely, no tension held anywhere.'},
+          {w:'Spent', d:'Emptied out, little left to draw on.'}
+        ]
+      }
+    ],
+    mental: [
+      {
+        key:'ss', label:'sharp · scattered', title:'Sharp,<br>Scattered', color:'var(--ment-3)',
+        words:[
+          {w:'Racing', d:'Thoughts moving faster than you can follow them.'},
+          {w:'Overstimulated', d:'Too much input, the mind struggling to filter.'},
+          {w:'Wired-thinking', d:'Sharp but scattered, sparking in several directions at once.'},
+          {w:'Darting', d:'Attention jumping before any one thought settles.'},
+          {w:'Frantic', d:'Urgent and scattered, too much happening to track.'},
+          {w:'Buzzing', d:'Mentally humming, thoughts overlapping in a fast current.'},
+          {w:'Hyperalert', d:'Scanning for what\u2019s next before the present is finished.'},
+          {w:'Fragmented', d:'In pieces \u2014 no single thought completing itself.'}
+        ]
+      },
+      {
+        key:'sa', label:'sharp · anchored', title:'Sharp,<br>Anchored', color:'var(--ment-4)',
+        words:[
+          {w:'Clear', d:'Thinking moves easily, nothing in the way.'},
+          {w:'Focused', d:'Attention holding steady on one thing.'},
+          {w:'Absorbed', d:'Fully inside a task, time falls away.'},
+          {w:'Lucid', d:'Sharp and orientated, seeing the shape of things clearly.'},
+          {w:'Sharp', d:'Cutting clean through what\u2019s in front of you.'},
+          {w:'Engaged', d:'Leaned in, attention given willingly.'},
+          {w:'Attentive', d:'Noticing well, taking things in accurately.'},
+          {w:'Precise', d:'Exact \u2014 thinking that lands where it\u2019s aimed.'}
+        ]
+      },
+      {
+        key:'fs', label:'foggy · scattered', title:'Foggy,<br>Scattered', color:'var(--ment-1)',
+        words:[
+          {w:'Overwhelmed', d:'Too much to hold, nothing sorting itself out.'},
+          {w:'Distracted', d:'Attention keeps sliding off what you meant to do.'},
+          {w:'Cluttered', d:'Many half-formed thoughts, none of them finished.'},
+          {w:'Adrift', d:'No clear thread to follow, mind loosely floating.'},
+          {w:'Muddled', d:'Thoughts tangled together, hard to separate one from another.'},
+          {w:'Foggy', d:'A soft haze over everything, edges unclear.'},
+          {w:'Scattered', d:'In several places at once, none of them settled.'},
+          {w:'Confused', d:'Losing the thread of what you were following.'}
+        ]
+      },
+      {
+        key:'fa', label:'foggy · anchored', title:'Foggy,<br>Anchored', color:'var(--ment-2)',
+        words:[
+          {w:'Quiet', d:'Still, without much traffic passing through.'},
+          {w:'Daydreaming', d:'Gently elsewhere, not tracking the present moment.'},
+          {w:'Unfocused', d:'Soft attention, nothing pulled into sharp view.'},
+          {w:'Settled', d:'Calm and unhurried, present without urgency.'},
+          {w:'Calm', d:'Settled and undisturbed, nothing urgent stirring.'},
+          {w:'Drowsy', d:'Heavy-lidded, mind drifting toward sleep.'},
+          {w:'Hazy', d:'Softly unclear, thoughts arriving through a veil.'},
+          {w:'Still', d:'Quiet enough to hear very little at all.'}
+        ]
+      }
+    ],
+    emotional: [
+      {
+        key:'hu', label:'high energy · unpleasant', title:'High Energy,<br>Unpleasant', color:'var(--emo-3)',
+        words:[
+          {w:'Angry', d:'Strongly bothered by something that feels unfair.'},
+          {w:'Anxious', d:'On edge, bracing for something that hasn\u2019t happened yet.'},
+          {w:'Overwhelmed', d:'Too much arriving at once, no clear way to sort it.'},
+          {w:'Frustrated', d:'Blocked from something you\u2019re trying to reach.'},
+          {w:'Stressed', d:'Under pressure, resources feeling stretched thin.'},
+          {w:'Nervous', d:'Uneasy about what\u2019s coming, a low hum of worry.'},
+          {w:'Irritated', d:'Annoyed by something small that keeps chafing.'},
+          {w:'Panicked', d:'Sudden, sharp alarm \u2014 the body ahead of the mind.'}
+        ]
+      },
+      {
+        key:'hp', label:'high energy · pleasant', title:'High Energy,<br>Pleasant', color:'var(--emo-4)',
+        words:[
+          {w:'Happy', d:'Genuinely pleased with how things are.'},
+          {w:'Excited', d:'Looking forward to something, energy leaning toward it.'},
+          {w:'Joyful', d:'A fuller, warmer happy \u2014 it fills the room.'},
+          {w:'Enthusiastic', d:'Eager and animated, keen to get started.'},
+          {w:'Confident', d:'Sure-footed, trusting your own judgment.'},
+          {w:'Proud', d:'Satisfied in something you did or were part of.'},
+          {w:'Inspired', d:'Moved to create or act by something you\u2019ve felt or seen.'},
+          {w:'Delighted', d:'Pleasantly surprised, charmed by the moment.'}
+        ]
+      },
+      {
+        key:'lu', label:'low energy · unpleasant', title:'Low Energy,<br>Unpleasant', color:'var(--emo-1)',
+        words:[
+          {w:'Sad', d:'A heaviness around loss or disappointment.'},
+          {w:'Lonely', d:'Wanting connection that isn\u2019t currently there.'},
+          {w:'Disappointed', d:'Something hoped for didn\u2019t happen.'},
+          {w:'Discouraged', d:'Losing heart about a path you were on.'},
+          {w:'Bored', d:'Under-stimulated, time feels slow.'},
+          {w:'Tired', d:'Low on emotional reserves, wanting to withdraw.'},
+          {w:'Hopeless', d:'Can\u2019t see a way forward from here.'},
+          {w:'Numb', d:'Muted, distant from your own reactions.'}
+        ]
+      },
+      {
+        key:'lp', label:'low energy · pleasant', title:'Low Energy,<br>Pleasant', color:'var(--emo-2)',
+        words:[
+          {w:'Calm', d:'Even and unhurried, nothing pulling at you.'},
+          {w:'Content', d:'Feeling complete, without needing anything more right now.'},
+          {w:'Relaxed', d:'Tension let go, at ease in the moment.'},
+          {w:'Peaceful', d:'Quiet inside, nothing at odds.'},
+          {w:'Grateful', d:'Aware of what you have, warmed by it.'},
+          {w:'Secure', d:'Steady and safe, trusting what\u2019s around you.'},
+          {w:'Satisfied', d:'Enough has been met \u2014 nothing left wanting.'},
+          {w:'Serene', d:'A deep, settled calm that doesn\u2019t waver easily.'}
+        ]
+      }
+    ]
+  };
+
+  const dotColor = { physical: '#D68A3E', mental: '#7FA6C9', emotional: '#D6AC42' };
+
+  // ---- persistence: entries kept indefinitely, chip vocabulary too ----
+  const STORAGE_KEY_ENTRIES = 'checkinCompass.entries';
+  const STORAGE_KEY_CHIPS = 'checkinCompass.chipVocab';
+
+  function todayKey(){
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function loadEntries(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY_ENTRIES);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){ return []; }
+  }
+  function saveEntries(entries){
+    try{ localStorage.setItem(STORAGE_KEY_ENTRIES, JSON.stringify(entries)); }
+    catch(e){ /* storage unavailable or full — the session still works, just won't persist */ }
+  }
+  function saveChipVocab(){
+    try{ localStorage.setItem(STORAGE_KEY_CHIPS, JSON.stringify(CONTEXT_FIELDS)); }
+    catch(e){ /* non-fatal */ }
+  }
+  function applyStoredChipVocab(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY_CHIPS);
+      if(!raw) return;
+      const stored = JSON.parse(raw);
+      Object.keys(CONTEXT_FIELDS).forEach(field => {
+        if(Array.isArray(stored[field])){
+          CONTEXT_FIELDS[field].length = 0;
+          stored[field].forEach(v => CONTEXT_FIELDS[field].push(v));
+        }
+      });
+    } catch(e){ /* non-fatal, defaults stand */ }
+  }
+
+  let allEntries = loadEntries();
+
+  // ---- structured context capture: shared across all three realms ----
+  const CONTEXT_FIELDS = {
+    activity: ['Working', 'Exercising', 'Eating', 'Resting', 'Commuting', 'Socialising', 'Screen time', 'Chores'],
+    company: ['By myself', 'Partner', 'Family', 'Friends', 'Colleagues', 'Strangers'],
+    location: ['Home', 'Work', 'Outdoors', 'Commuting', 'Public place', 'Someone else\u2019s']
+  };
+  applyStoredChipVocab();
+  let contextAnswers = { activity: null, company: null, location: null };
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function renderChipRow(field){
+    const row = document.getElementById('chips-' + field);
+    row.innerHTML = '';
+    CONTEXT_FIELDS[field].forEach(val => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (contextAnswers[field] === val ? ' selected' : '');
+      chip.textContent = val;
+      chip.addEventListener('click', () => selectChip(field, val));
+      row.appendChild(chip);
+    });
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'chip-add';
+    addBtn.textContent = '+ Add';
+    addBtn.addEventListener('click', () => showChipInput(field));
+    row.appendChild(addBtn);
+  }
+
+  function selectChip(field, val){
+    contextAnswers[field] = val;
+    renderChipRow(field);
+    updateSaveState();
+  }
+
+  function showChipInput(field){
+    const row = document.getElementById('chips-' + field);
+    const existing = row.parentElement.querySelector('.chip-input-row');
+    if(existing) existing.remove();
+
+    const wrap = document.createElement('div');
+    wrap.className = 'chip-input-row';
+    wrap.innerHTML = `<input type="text" maxlength="24" placeholder="Type your own\u2026"><button type="button" class="chip-confirm">Add</button>`;
+    row.parentElement.appendChild(wrap);
+    const input = wrap.querySelector('input');
+    input.focus();
+
+    const confirm = () => {
+      const val = input.value.trim();
+      if(!val) return;
+      if(!CONTEXT_FIELDS[field].includes(val)){
+        CONTEXT_FIELDS[field].push(val);
+        saveChipVocab();
+      }
+      contextAnswers[field] = val;
+      wrap.remove();
+      renderChipRow(field);
+      updateSaveState();
+    };
+    wrap.querySelector('.chip-confirm').addEventListener('click', confirm);
+    input.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); confirm(); } });
+  }
+
+  function resetContext(){
+    contextAnswers = { activity: null, company: null, location: null };
+    ['activity', 'company', 'location'].forEach(renderChipRow);
+    document.getElementById('card-trigger').value = '';
+    updateSaveState();
+  }
+
+  function updateSaveState(){
+    const ready = contextAnswers.activity && contextAnswers.company && contextAnswers.location;
+    const btn = document.getElementById('save-btn');
+    btn.disabled = !ready;
+    document.getElementById('save-hint').style.display = ready ? 'none' : '';
+  }
+
+  // ---- card is a two-step replacement for the compass, not an addition below it ----
+  const ALL_CATEGORIES = ['physical', 'mental', 'emotional'];
+
+  function hideCompassStage(category){
+    document.getElementById('panel-' + category).querySelector('.compass-stage').style.display = 'none';
+  }
+  function showCompassStage(category){
+    document.getElementById('panel-' + category).querySelector('.compass-stage').style.display = '';
+  }
+  function showCardConfirm(){
+    document.getElementById('card-confirm').style.display = '';
+    document.getElementById('card-context').style.display = 'none';
+  }
+  function showCardContext(){
+    document.getElementById('card-confirm').style.display = 'none';
+    document.getElementById('card-context').style.display = '';
+  }
+
+  let currentCategory = 'physical';
+  let currentQuadKey = null;
+  let currentWord = null, currentDef = null;
+
+  function buildQuadgrid(panelEl, category){
+    const grid = panelEl.querySelector('.quadgrid');
+    grid.innerHTML = '';
+    DATA[category].forEach(q => {
+      const btn = document.createElement('button');
+      btn.className = 'quad';
+      btn.style.background = q.color;
+      btn.dataset.key = q.key;
+      btn.innerHTML = `<div class="quad-title">${q.title}</div>`;
+      btn.addEventListener('click', () => openQuadrant(category, q.key));
+      grid.appendChild(btn);
+    });
+  }
+
+  function openQuadrant(category, key){
+    currentQuadKey = key;
+    const panelEl = document.getElementById('panel-' + category);
+    const grid = panelEl.querySelector('.quadgrid');
+    const wordpanel = panelEl.querySelector('.wordpanel');
+    const q = DATA[category].find(x => x.key === key);
+
+    grid.style.display = 'none';
+    wordpanel.style.background = q.color;
+    wordpanel.innerHTML = `
+      <div class="panel-head">
+        <button class="back-btn">\u2039 Quadrants</button>
+        <span class="quad-label">${q.label}</span>
+      </div>
+      <div class="word-wrap"></div>
+    `;
+    wordpanel.querySelector('.back-btn').addEventListener('click', () => closeQuadrant(category));
+
+    const wrap = wordpanel.querySelector('.word-wrap');
+    q.words.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'word';
+      btn.dataset.word = item.w;
+      btn.dataset.def = item.d;
+      btn.textContent = item.w;
+      btn.addEventListener('click', () => selectWord(category, btn));
+      wrap.appendChild(btn);
+    });
+
+    wordpanel.classList.add('show');
+  }
+
+  function closeQuadrant(category){
+    currentQuadKey = null;
+    const panelEl = document.getElementById('panel-' + category);
+    panelEl.querySelector('.quadgrid').style.display = '';
+    panelEl.querySelector('.wordpanel').classList.remove('show');
+    hideCard();
+  }
+
+  function selectWord(category, btn){
+    btn.closest('.word-wrap').querySelectorAll('.word').forEach(w => w.classList.remove('selected'));
+    btn.classList.add('selected');
+    currentWord = btn.dataset.word;
+    currentDef = btn.dataset.def;
+    currentCategory = category;
+    document.getElementById('card-word').textContent = currentWord;
+    document.getElementById('card-def').textContent = currentDef;
+    document.getElementById('context-word-tag').textContent = currentWord;
+    document.getElementById('trigger-word').textContent = currentWord.charAt(0).toLowerCase() + currentWord.slice(1);
+    resetContext();
+    showCardConfirm();
+    document.getElementById('card').classList.add('show');
+    // compass stays visible here — only the arrow collapses it into context capture
+  }
+
+  function cancelWordSelection(){
+    // "back" from the confirm step: drop the word, leave the quadrant open
+    document.getElementById('card').classList.remove('show');
+    showCardConfirm();
+    currentWord = null;
+    currentDef = null;
+    resetContext();
+  }
+
+  function backFromContext(){
+    // "back" from context capture: restore the compass, return to confirm — word stays selected
+    showCompassStage(currentCategory);
+    showCardConfirm();
+  }
+
+  function hideCard(){
+    document.getElementById('card').classList.remove('show');
+    showCardConfirm();
+    ALL_CATEGORIES.forEach(showCompassStage);
+    currentWord = null;
+    currentDef = null;
+    resetContext();
+  }
+
+  function resetPanel(category){
+    closeQuadrant(category);
+  }
+
+  // ---- tabs ----
+  const tabs = document.querySelectorAll('.tab');
+  const panels = { physical: document.getElementById('panel-physical'), mental: document.getElementById('panel-mental'), emotional: document.getElementById('panel-emotional') };
+
+  document.getElementById('next-arrow').addEventListener('click', () => {
+    hideCompassStage(currentCategory);
+    showCardContext();
+  });
+  document.getElementById('card-back-1').addEventListener('click', cancelWordSelection);
+  document.getElementById('card-back-2').addEventListener('click', backFromContext);
+
+  function switchTab(target){
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === target));
+    Object.keys(panels).forEach(k => panels[k].style.display = (k === target ? '' : 'none'));
+    currentCategory = target;
+    hideCard();
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+  });
+
+  // ---- build all three panels on load ----
+  buildQuadgrid(panels.physical, 'physical');
+  buildQuadgrid(panels.mental, 'mental');
+  buildQuadgrid(panels.emotional, 'emotional');
+
+  // ---- reading log ----
+  const readingList = document.getElementById('reading-list');
+
+  const CATEGORY_ORDER = ['physical', 'mental', 'emotional'];
+  const completed = { physical: false, mental: false, emotional: false };
+
+  function advanceFlow(justCompleted){
+    completed[justCompleted] = true;
+    const next = CATEGORY_ORDER.find(c => !completed[c]);
+    if(next){
+      switchTab(next);
+    } else {
+      document.getElementById('checkin-flow').style.display = 'none';
+      document.getElementById('all-done-msg').style.display = '';
+    }
+  }
+
+  function buildReadingItem(entry){
+    const contextLine = [entry.activity, entry.company, entry.location].join(' \u00b7 ');
+    const item = document.createElement('div');
+    item.className = 'reading-item';
+    item.innerHTML = `
+      <div class="ri-top">
+        <div class="dot" style="background:${dotColor[entry.category]}"></div>
+        <div class="col">${entry.category}</div>
+      </div>
+      <div class="val">${escapeHtml(entry.word)}</div>
+      <div class="note">${escapeHtml(contextLine)}</div>
+      ${entry.trigger ? `<div class="note"><em>${escapeHtml(entry.trigger)}</em></div>` : ''}
+    `;
+    return item;
+  }
+
+  document.getElementById('save-btn').addEventListener('click', () => {
+    if(!currentWord) return;
+    if(!contextAnswers.activity || !contextAnswers.company || !contextAnswers.location) return;
+    const savedCategory = currentCategory;
+    const trigger = document.getElementById('card-trigger').value.trim();
+
+    const entry = {
+      date: todayKey(),
+      timestamp: new Date().toISOString(),
+      category: savedCategory,
+      word: currentWord,
+      activity: contextAnswers.activity,
+      company: contextAnswers.company,
+      location: contextAnswers.location,
+      trigger: trigger
+    };
+    allEntries.push(entry);
+    saveEntries(allEntries);
+
+    if(readingList.querySelector('.reading-empty')) readingList.innerHTML = '';
+    readingList.appendChild(buildReadingItem(entry));
+
+    resetPanel(savedCategory);
+    advanceFlow(savedCategory);
+  });
+
+  // ---- rebuild today's state from storage on load ----
+  function hydrateToday(){
+    const key = todayKey();
+    const todays = allEntries.filter(e => e.date === key);
+
+    if(todays.length){
+      readingList.innerHTML = '';
+      todays.forEach(e => readingList.appendChild(buildReadingItem(e)));
+    }
+
+    CATEGORY_ORDER.forEach(c => {
+      completed[c] = todays.some(e => e.category === c);
+    });
+
+    if(CATEGORY_ORDER.every(c => completed[c])){
+      document.getElementById('checkin-flow').style.display = 'none';
+      document.getElementById('all-done-msg').style.display = '';
+    } else {
+      const next = CATEGORY_ORDER.find(c => !completed[c]);
+      if(next !== 'physical') switchTab(next);
+    }
+  }
+  hydrateToday();
+
+  // ---- offline: register the service worker ----
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => { /* non-fatal */ });
+    });
+  }
+</script>
+
+</body>
+</html>
