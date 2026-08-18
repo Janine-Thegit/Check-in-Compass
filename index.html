@@ -88,8 +88,21 @@
     font-size:15px;
     line-height:1.5;
     color:var(--paper);
-    margin:0 0 8px;
+    margin:0 0 14px;
   }
+  .check-in-again-btn{
+    background:none;
+    border:1px solid var(--line-strong);
+    border-radius:999px;
+    color:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    padding:8px 18px;
+    cursor:pointer;
+    letter-spacing:0.01em;
+  }
+  .check-in-again-btn:hover{ background:rgba(239,231,218,0.08); }
 
   /* tabs */
   .tabs{
@@ -598,7 +611,10 @@
     <p class="sub">Choose a quadrant, then find the word that fits — read what it means, note a trigger that put you there.</p>
   </header>
 
-  <p class="all-done-msg" id="all-done-msg" style="display:none;">Physical, Mental, and Emotional are all logged for today. Here's your reading.</p>
+  <div id="all-done" style="display:none;">
+    <p class="all-done-msg">Physical, Mental, and Emotional are all logged for today. Here's your reading.</p>
+    <button class="check-in-again-btn" id="check-in-again-btn">Check in again</button>
+  </div>
 
   <!-- context intake: asked once, before the first quadrant -->
   <div id="context-intake">
@@ -1182,8 +1198,22 @@
       switchTab(next);
     } else {
       document.getElementById('checkin-flow').style.display = 'none';
-      document.getElementById('all-done-msg').style.display = '';
+      document.getElementById('all-done').style.display = '';
     }
+  }
+
+  function checkInAgain(){
+    // a fresh pass through the day — new context, all three realms reopened.
+    // nothing already logged is touched.
+    CATEGORY_ORDER.forEach(c => { completed[c] = false; });
+    sessionContext = null;
+    contextAnswers = { activity: null, company: null, location: null };
+    ['activity', 'company', 'location'].forEach(renderChipRow);
+    updateIntakeState();
+
+    document.getElementById('all-done').style.display = 'none';
+    document.getElementById('checkin-flow').style.display = 'none';
+    document.getElementById('context-intake').style.display = '';
   }
 
   function buildReadingItem(entry){
@@ -1246,7 +1276,7 @@
 
     if(!stillAllDone && flowHidden){
       // that realm is genuinely unfinished again — reopen the flow on it
-      document.getElementById('all-done-msg').style.display = 'none';
+      document.getElementById('all-done').style.display = 'none';
       document.getElementById('checkin-flow').style.display = '';
       switchTab(CATEGORY_ORDER.find(c => !completed[c]));
     }
@@ -1312,7 +1342,10 @@
     saveTodayContext(sessionContext);
     document.getElementById('context-intake').style.display = 'none';
     document.getElementById('checkin-flow').style.display = '';
+    switchTab('physical');
   });
+
+  document.getElementById('check-in-again-btn').addEventListener('click', checkInAgain);
 
   document.getElementById('save-btn').addEventListener('click', () => {
     if(!currentWord || !sessionContext) return;
@@ -1358,7 +1391,7 @@
     if(allDone){
       document.getElementById('context-intake').style.display = 'none';
       document.getElementById('checkin-flow').style.display = 'none';
-      document.getElementById('all-done-msg').style.display = '';
+      document.getElementById('all-done').style.display = '';
       return;
     }
 
