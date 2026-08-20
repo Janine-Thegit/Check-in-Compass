@@ -527,24 +527,44 @@
   }
 
   /* look back */
-  #lookback-periods{
-    margin:14px 0 20px;
+  .lookback-nav{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+    margin:16px 0 20px;
   }
-  .lookback-date{
+  .lookback-date-heading{
     font-family:'Fraunces', serif;
     font-weight:600;
-    font-size:13px;
+    font-size:15px;
     color:var(--paper);
-    margin:20px 0 8px;
+    text-align:center;
+    min-width:0;
   }
-  .lookback-group:first-child .lookback-date{
-    margin-top:0;
+  .lookback-arrow{
+    background:rgba(239,231,218,0.06);
+    border:1px solid var(--line);
+    border-radius:50%;
+    width:32px;
+    height:32px;
+    color:var(--paper);
+    font-size:16px;
+    line-height:1;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
   }
+  .lookback-arrow:hover{ background:rgba(239,231,218,0.12); }
+  .lookback-arrow.hidden{ visibility:hidden; }
   .lookback-empty{
     font-size:13px;
     color:var(--paper-dim);
     font-style:italic;
     margin-top:6px;
+    text-align:center;
   }
   .lookback-cards{
     display:flex;
@@ -774,15 +794,12 @@
       <button class="card-back-btn" id="lookback-back-btn">‹ Back to today</button>
     </div>
     <p class="stage-prompt" style="margin-top:2px;">Look back</p>
-    <div class="chip-row" id="lookback-periods">
-      <button type="button" class="chip selected" data-period="7">Last 7 days</button>
-      <button type="button" class="chip" data-period="30">Last 30 days</button>
-      <button type="button" class="chip" data-period="3m">Last 3 months</button>
-      <button type="button" class="chip" data-period="6m">Last 6 months</button>
-      <button type="button" class="chip" data-period="12m">Last 12 months</button>
-      <button type="button" class="chip" data-period="all">Since you started</button>
+    <div class="lookback-nav">
+      <button type="button" class="lookback-arrow" id="lookback-prev" aria-label="Earlier day">‹</button>
+      <span class="lookback-date-heading" id="lookback-date-heading"></span>
+      <button type="button" class="lookback-arrow" id="lookback-next" aria-label="Later day">›</button>
     </div>
-    <div id="lookback-results"></div>
+    <div id="lookback-cards" class="lookback-cards"></div>
   </div>
 
 </div>
@@ -1324,21 +1341,10 @@
     allEntries = allEntries.filter(e => e.id !== entry.id);
     saveEntries(allEntries);
 
-    const group = itemEl.closest('.lookback-group');
+    const inLookback = itemEl.closest('#lookback-cards') !== null;
     itemEl.remove();
 
-    if(group){
-      // keep Today's reading in sync if this entry was also showing there
-      const twin = readingList.querySelector('[data-id="' + entry.id + '"]');
-      if(twin) twin.remove();
-
-      const cardsWrap = group.querySelector('.lookback-cards');
-      if(cardsWrap && !cardsWrap.children.length) group.remove();
-      const results = document.getElementById('lookback-results');
-      if(!results.children.length){
-        results.innerHTML = '<p class="lookback-empty">Nothing logged in this period.</p>';
-      }
-    }
+    if(inLookback) refreshLookbackDay();
 
     if(!readingList.children.length){
       readingList.innerHTML = '<p class="reading-empty">Nothing logged yet — pick a word above to start.</p>';
@@ -1417,60 +1423,62 @@
     }
   });
 
-  // ---- look back: browse entries across past days ----
-  let lookbackPeriod = '7';
+  // ---- look back: browse entries one day at a time, arrows to move between them ----
+  let lookbackDays = [];   // dates with entries, excluding today, ascending
+  let lookbackIndex = -1;
 
-  function cutoffKeyFor(period){
-    if(period === 'all') return null;
-    const d = new Date();
-    if(period === '7'){ d.setDate(d.getDate() - 6); }
-    else if(period === '30'){ d.setDate(d.getDate() - 29); }
-    else if(period === '3m'){ d.setMonth(d.getMonth() - 3); }
-    else if(period === '6m'){ d.setMonth(d.getMonth() - 6); }
-    else if(period === '12m'){ d.setFullYear(d.getFullYear() - 1); }
-    else { return null; }
-    return todayKey(d);
+  function computeLookbackDays(){
+    const dates = new Set();
+    allEntries.forEach(e => { if(e.date !== todayKey()) dates.add(e.date); });
+    return Array.from(dates).sort();
   }
 
-  function renderLookback(){
-    const results = document.getElementById('lookback-results');
-    results.innerHTML = '';
+  function renderLookbackDay(){
+    const cardsWrap = document.getElementById('lookback-cards');
+    const heading = document.getElementById('lookback-date-heading');
+    const prevBtn = document.getElementById('lookback-prev');
+    const nextBtn = document.getElementById('lookback-next');
+    cardsWrap.innerHTML = '';
 
-    const cutoff = cutoffKeyFor(lookbackPeriod);
-    const filtered = allEntries.filter(e => !cutoff || e.date >= cutoff);
-
-    if(!filtered.length){
-      results.innerHTML = '<p class="lookback-empty">Nothing logged in this period.</p>';
+    if(!lookbackDays.length){
+      heading.textContent = '';
+      cardsWrap.innerHTML = '<p class="lookback-empty">No previous check-ins yet.</p>';
+      prevBtn.classList.add('hidden');
+      nextBtn.classList.add('hidden');
       return;
     }
 
-    const byDate = {};
-    filtered.forEach(e => { (byDate[e.date] = byDate[e.date] || []).push(e); });
+    const dateKey = lookbackDays[lookbackIndex];
+    heading.textContent = formatDateHeading(dateFromKey(dateKey));
 
-    Object.keys(byDate).sort().reverse().forEach(dateKey => {
-      const group = document.createElement('div');
-      group.className = 'lookback-group';
+    allEntries
+      .filter(e => e.date === dateKey)
+      .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+      .forEach(e => cardsWrap.appendChild(buildReadingItem(e)));
 
-      const heading = document.createElement('p');
-      heading.className = 'lookback-date';
-      heading.textContent = dateKey === todayKey() ? 'Today' : formatDateHeading(dateFromKey(dateKey));
-      group.appendChild(heading);
+    prevBtn.classList.toggle('hidden', lookbackIndex <= 0);
+    nextBtn.classList.toggle('hidden', lookbackIndex >= lookbackDays.length - 1);
+  }
 
-      const cardsWrap = document.createElement('div');
-      cardsWrap.className = 'lookback-cards';
-      byDate[dateKey]
-        .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
-        .forEach(e => cardsWrap.appendChild(buildReadingItem(e)));
-      group.appendChild(cardsWrap);
-
-      results.appendChild(group);
-    });
+  function refreshLookbackDay(){
+    // a delete may have emptied the day being viewed — recompute and land somewhere sensible
+    const currentDateKey = lookbackDays[lookbackIndex];
+    lookbackDays = computeLookbackDays();
+    if(!lookbackDays.length){
+      lookbackIndex = -1;
+    } else {
+      const idx = lookbackDays.indexOf(currentDateKey);
+      lookbackIndex = idx !== -1 ? idx : Math.min(lookbackIndex, lookbackDays.length - 1);
+    }
+    renderLookbackDay();
   }
 
   function openLookback(){
     document.getElementById('main-view').style.display = 'none';
     document.getElementById('lookback').style.display = '';
-    renderLookback();
+    lookbackDays = computeLookbackDays();
+    lookbackIndex = lookbackDays.length - 1; // most recent previous day first
+    renderLookbackDay();
   }
   function closeLookback(){
     document.getElementById('lookback').style.display = 'none';
@@ -1479,12 +1487,11 @@
 
   document.getElementById('lookback-open-btn').addEventListener('click', openLookback);
   document.getElementById('lookback-back-btn').addEventListener('click', closeLookback);
-  document.querySelectorAll('#lookback-periods .chip').forEach(btn => {
-    btn.addEventListener('click', () => {
-      lookbackPeriod = btn.dataset.period;
-      document.querySelectorAll('#lookback-periods .chip').forEach(b => b.classList.toggle('selected', b === btn));
-      renderLookback();
-    });
+  document.getElementById('lookback-prev').addEventListener('click', () => {
+    if(lookbackIndex > 0){ lookbackIndex -= 1; renderLookbackDay(); }
+  });
+  document.getElementById('lookback-next').addEventListener('click', () => {
+    if(lookbackIndex < lookbackDays.length - 1){ lookbackIndex += 1; renderLookbackDay(); }
   });
 
   // ---- context intake: answered once, before the first quadrant ----
