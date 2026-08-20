@@ -491,7 +491,14 @@
     display:flex;
     justify-content:space-between;
     align-items:baseline;
+    flex-wrap:wrap;
+    gap:8px;
     margin-bottom:12px;
+  }
+  .reading-head-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
   }
   .reading h2{
     font-family:'Fraunces', serif;
@@ -517,6 +524,32 @@
     font-size:13px;
     color:var(--paper-dim);
     font-style:italic;
+  }
+
+  /* look back */
+  #lookback-periods{
+    margin:14px 0 20px;
+  }
+  .lookback-date{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:13px;
+    color:var(--paper);
+    margin:20px 0 8px;
+  }
+  .lookback-group:first-child .lookback-date{
+    margin-top:0;
+  }
+  .lookback-empty{
+    font-size:13px;
+    color:var(--paper-dim);
+    font-style:italic;
+    margin-top:6px;
+  }
+  .lookback-cards{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
   }
   #reading-list{
     display:flex;
@@ -616,6 +649,7 @@
     <p class="sub">Choose a quadrant, then find the word that fits — read what it means, note a trigger that put you there.</p>
   </header>
 
+  <div id="main-view">
   <div id="all-done" style="display:none;">
     <p class="all-done-msg">Physical, Mental, and Emotional are all logged for today. Here's your reading.</p>
     <button class="check-in-again-btn" id="check-in-again-btn">Check in again</button>
@@ -723,11 +757,32 @@
   <div class="reading">
     <div class="reading-head">
       <h2>Today's reading</h2>
-      <button class="copy-btn" id="copy-reading-btn">Copy as text</button>
+      <div class="reading-head-actions">
+        <button class="copy-btn" id="lookback-open-btn">Look back</button>
+        <button class="copy-btn" id="copy-reading-btn">Copy as text</button>
+      </div>
     </div>
     <div id="reading-list">
       <p class="reading-empty">Nothing logged yet — pick a word above to start.</p>
     </div>
+  </div>
+  </div>
+
+  <!-- look back: browse entries across past days -->
+  <div id="lookback" style="display:none;">
+    <div class="card-topbar">
+      <button class="card-back-btn" id="lookback-back-btn">‹ Back to today</button>
+    </div>
+    <p class="stage-prompt" style="margin-top:2px;">Look back</p>
+    <div class="chip-row" id="lookback-periods">
+      <button type="button" class="chip selected" data-period="7">Last 7 days</button>
+      <button type="button" class="chip" data-period="30">Last 30 days</button>
+      <button type="button" class="chip" data-period="3m">Last 3 months</button>
+      <button type="button" class="chip" data-period="6m">Last 6 months</button>
+      <button type="button" class="chip" data-period="12m">Last 12 months</button>
+      <button type="button" class="chip" data-period="all">Since you started</button>
+    </div>
+    <div id="lookback-results"></div>
   </div>
 
 </div>
@@ -905,8 +960,8 @@
   const STORAGE_KEY_ENTRIES = 'checkinCompass.entries';
   const STORAGE_KEY_CHIPS = 'checkinCompass.chipVocab';
 
-  function todayKey(){
-    const d = new Date();
+  function todayKey(d){
+    d = d || new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
@@ -1268,11 +1323,28 @@
   function deleteEntry(entry, itemEl){
     allEntries = allEntries.filter(e => e.id !== entry.id);
     saveEntries(allEntries);
+
+    const group = itemEl.closest('.lookback-group');
     itemEl.remove();
+
+    if(group){
+      // keep Today's reading in sync if this entry was also showing there
+      const twin = readingList.querySelector('[data-id="' + entry.id + '"]');
+      if(twin) twin.remove();
+
+      const cardsWrap = group.querySelector('.lookback-cards');
+      if(cardsWrap && !cardsWrap.children.length) group.remove();
+      const results = document.getElementById('lookback-results');
+      if(!results.children.length){
+        results.innerHTML = '<p class="lookback-empty">Nothing logged in this period.</p>';
+      }
+    }
 
     if(!readingList.children.length){
       readingList.innerHTML = '<p class="reading-empty">Nothing logged yet — pick a word above to start.</p>';
     }
+
+    if(entry.date !== todayKey()) return;
 
     const todays = allEntries.filter(e => e.date === todayKey());
     const stillAllDone = CATEGORY_ORDER.every(c => todays.some(e => e.category === c));
@@ -1292,8 +1364,15 @@
   function formatEntryTime(iso){
     return new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
   }
+  function formatDateHeading(date){
+    return date.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
   function formatTodayHeader(){
-    return new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    return formatDateHeading(new Date());
+  }
+  function dateFromKey(key){
+    const [y, m, d] = key.split('-').map(Number);
+    return new Date(y, m - 1, d);
   }
   function buildReadingText(){
     const todays = allEntries.filter(e => e.date === todayKey());
@@ -1336,6 +1415,76 @@
     } else {
       fallbackCopy(text, done);
     }
+  });
+
+  // ---- look back: browse entries across past days ----
+  let lookbackPeriod = '7';
+
+  function cutoffKeyFor(period){
+    if(period === 'all') return null;
+    const d = new Date();
+    if(period === '7'){ d.setDate(d.getDate() - 6); }
+    else if(period === '30'){ d.setDate(d.getDate() - 29); }
+    else if(period === '3m'){ d.setMonth(d.getMonth() - 3); }
+    else if(period === '6m'){ d.setMonth(d.getMonth() - 6); }
+    else if(period === '12m'){ d.setFullYear(d.getFullYear() - 1); }
+    else { return null; }
+    return todayKey(d);
+  }
+
+  function renderLookback(){
+    const results = document.getElementById('lookback-results');
+    results.innerHTML = '';
+
+    const cutoff = cutoffKeyFor(lookbackPeriod);
+    const filtered = allEntries.filter(e => !cutoff || e.date >= cutoff);
+
+    if(!filtered.length){
+      results.innerHTML = '<p class="lookback-empty">Nothing logged in this period.</p>';
+      return;
+    }
+
+    const byDate = {};
+    filtered.forEach(e => { (byDate[e.date] = byDate[e.date] || []).push(e); });
+
+    Object.keys(byDate).sort().reverse().forEach(dateKey => {
+      const group = document.createElement('div');
+      group.className = 'lookback-group';
+
+      const heading = document.createElement('p');
+      heading.className = 'lookback-date';
+      heading.textContent = dateKey === todayKey() ? 'Today' : formatDateHeading(dateFromKey(dateKey));
+      group.appendChild(heading);
+
+      const cardsWrap = document.createElement('div');
+      cardsWrap.className = 'lookback-cards';
+      byDate[dateKey]
+        .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+        .forEach(e => cardsWrap.appendChild(buildReadingItem(e)));
+      group.appendChild(cardsWrap);
+
+      results.appendChild(group);
+    });
+  }
+
+  function openLookback(){
+    document.getElementById('main-view').style.display = 'none';
+    document.getElementById('lookback').style.display = '';
+    renderLookback();
+  }
+  function closeLookback(){
+    document.getElementById('lookback').style.display = 'none';
+    document.getElementById('main-view').style.display = '';
+  }
+
+  document.getElementById('lookback-open-btn').addEventListener('click', openLookback);
+  document.getElementById('lookback-back-btn').addEventListener('click', closeLookback);
+  document.querySelectorAll('#lookback-periods .chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      lookbackPeriod = btn.dataset.period;
+      document.querySelectorAll('#lookback-periods .chip').forEach(b => b.classList.toggle('selected', b === btn));
+      renderLookback();
+    });
   });
 
   // ---- context intake: answered once, before the first quadrant ----
