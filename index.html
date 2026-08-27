@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
 <title>Check-In Compass</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#18140F">
+<meta name="theme-color" content="#1F2A37">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,29 +15,29 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#18140F;
-    --paper:#EFE7DA;
-    --paper-dim:#C9BEAC;
-    --line:rgba(239,231,218,0.14);
-    --line-strong:rgba(239,231,218,0.28);
+    --ink:#1F2A37;
+    --paper:#EAE1D0;
+    --paper-dim:#B9AD94;
+    --line:rgba(234,225,208,0.14);
+    --line-strong:rgba(234,225,208,0.28);
 
-    /* physical: ember / clay family, intensity by energy */
-    --phys-1:#8A5A3D; /* depleted+braced */
-    --phys-2:#B97A4C; /* depleted+released */
-    --phys-3:#D68A3E; /* charged+braced */
-    --phys-4:#E8A93F; /* charged+released */
+    /* physical: brand gold family, intensity by energy */
+    --phys-1:#8A6A35; /* depleted+braced */
+    --phys-2:#B3893C; /* depleted+released */
+    --phys-3:#D9A53E; /* charged+braced */
+    --phys-4:#F5B642; /* charged+released — brand gold */
 
-    /* mental: ink / slate family, intensity by clarity */
-    --ment-1:#3E5266; /* foggy+scattered */
-    --ment-2:#4E7088; /* foggy+anchored */
-    --ment-3:#5D7FA8; /* sharp+scattered */
-    --ment-4:#7FA6C9; /* sharp+anchored */
+    /* mental: brand blue family, intensity by clarity */
+    --ment-1:#2C4A6E; /* foggy+scattered */
+    --ment-2:#3A6FA0; /* foggy+anchored */
+    --ment-3:#4A90E2; /* sharp+scattered — brand blue */
+    --ment-4:#82B8F0; /* sharp+anchored */
 
-    /* emotional: mood-meter family, muted to match the ink/paper palette */
-    --emo-1:#4A5C8C; /* low energy + unpleasant */
-    --emo-2:#4E9270; /* low energy + pleasant */
-    --emo-3:#B5504C; /* high energy + unpleasant */
-    --emo-4:#D6AC42; /* high energy + pleasant */
+    /* emotional: the four brand accents, one per quadrant */
+    --emo-1:#4A90E2; /* low energy + unpleasant — brand blue */
+    --emo-2:#2E8B68; /* low energy + pleasant — brand green */
+    --emo-3:#6A3F8E; /* high energy + unpleasant — brand purple */
+    --emo-4:#F5B642; /* high energy + pleasant — brand gold */
   }
 
   *{box-sizing:border-box;}
@@ -102,7 +102,7 @@
     cursor:pointer;
     letter-spacing:0.01em;
   }
-  .check-in-again-btn:hover{ background:rgba(239,231,218,0.08); }
+  .check-in-again-btn:hover{ background:rgba(234,225,208,0.08); }
 
   /* tabs */
   .tabs{
@@ -380,7 +380,7 @@
     gap:7px;
   }
   .chip{
-    background:rgba(239,231,218,0.06);
+    background:rgba(234,225,208,0.06);
     border:1px solid var(--line);
     border-radius:999px;
     padding:6px 13px;
@@ -389,7 +389,7 @@
     color:var(--paper);
     cursor:pointer;
   }
-  .chip:hover{ background:rgba(239,231,218,0.12); }
+  .chip:hover{ background:rgba(234,225,208,0.12); }
   .chip.selected{
     background:var(--paper);
     color:var(--ink);
@@ -414,7 +414,7 @@
   }
   .chip-input-row input{
     flex:1;
-    background:rgba(239,231,218,0.05);
+    background:rgba(234,225,208,0.05);
     border:1px solid var(--line);
     border-radius:999px;
     padding:6px 13px;
@@ -422,7 +422,7 @@
     font-family:'IBM Plex Sans', sans-serif;
     font-size:13px;
   }
-  .chip-input-row input::placeholder{ color:rgba(239,231,218,0.32); }
+  .chip-input-row input::placeholder{ color:rgba(234,225,208,0.32); }
   .chip-confirm{
     background:var(--paper);
     color:var(--ink);
@@ -438,7 +438,7 @@
 
   .card textarea{
     width:100%;
-    background:rgba(239,231,218,0.05);
+    background:rgba(234,225,208,0.05);
     border:1px solid var(--line);
     border-radius:2px;
     color:var(--paper);
@@ -449,7 +449,7 @@
     min-height:56px;
     line-height:1.5;
   }
-  .card textarea::placeholder{ color:rgba(239,231,218,0.32); }
+  .card textarea::placeholder{ color:rgba(234,225,208,0.32); }
 
   .save-row{
     display:flex;
@@ -507,7 +507,7 @@
     margin:0;
   }
   .copy-btn{
-    background:rgba(239,231,218,0.06);
+    background:rgba(234,225,208,0.06);
     border:1px solid var(--line);
     border-radius:999px;
     color:var(--paper-dim);
@@ -518,7 +518,7 @@
     cursor:pointer;
     flex-shrink:0;
   }
-  .copy-btn:hover{ background:rgba(239,231,218,0.12); color:var(--paper); }
+  .copy-btn:hover{ background:rgba(234,225,208,0.12); color:var(--paper); }
   .copy-btn:disabled{ opacity:0.6; cursor:default; }
   .reading-empty{
     font-size:13px;
@@ -543,7 +543,7 @@
     min-width:0;
   }
   .lookback-arrow{
-    background:rgba(239,231,218,0.06);
+    background:rgba(234,225,208,0.06);
     border:1px solid var(--line);
     border-radius:50%;
     width:32px;
@@ -557,7 +557,7 @@
     justify-content:center;
     flex-shrink:0;
   }
-  .lookback-arrow:hover{ background:rgba(239,231,218,0.12); }
+  .lookback-arrow:hover{ background:rgba(234,225,208,0.12); }
   .lookback-arrow.hidden{ visibility:hidden; }
   .lookback-empty{
     font-size:13px;
@@ -636,7 +636,7 @@
     gap:8px;
   }
   .ri-cancel{
-    background:rgba(239,231,218,0.06);
+    background:rgba(234,225,208,0.06);
     border:1px solid var(--line);
     border-radius:999px;
     padding:6px 14px;
@@ -645,7 +645,7 @@
     color:var(--paper);
     cursor:pointer;
   }
-  .ri-cancel:hover{ background:rgba(239,231,218,0.12); }
+  .ri-cancel:hover{ background:rgba(234,225,208,0.12); }
   .ri-confirm-delete{
     background:var(--emo-3);
     border:none;
@@ -971,7 +971,7 @@
     ]
   };
 
-  const dotColor = { physical: '#D68A3E', mental: '#7FA6C9', emotional: '#D6AC42' };
+  const dotColor = { physical: '#F5B642', mental: '#4A90E2', emotional: '#6A3F8E' };
 
   // ---- persistence: entries kept indefinitely, chip vocabulary too ----
   const STORAGE_KEY_ENTRIES = 'checkinCompass.entries';
