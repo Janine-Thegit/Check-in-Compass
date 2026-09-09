@@ -40,6 +40,52 @@
     --emo-4:#F5B642; /* high energy + pleasant — brand gold */
   }
 
+  /* ---- french palette: one muted hue per realm instead of three brand hues ---- */
+  html[data-lang="fr"]{
+    --ink:#3A3A3A;
+    --paper:#F8F7F4;
+    --paper-dim:#A6A098;
+    --line:rgba(58,58,58,0.14);
+    --line-strong:rgba(58,58,58,0.28);
+
+    /* physical: soft taupe, darkest = depleted+braced, lightest = charged+released */
+    --phys-1:#7F776E;
+    --phys-2:#989188;
+    --phys-3:#B4AFA8;
+    --phys-4:#CCC8C4;
+
+    /* mental: slate blue, same darkest-to-lightest logic */
+    --ment-1:#41474E;
+    --ment-2:#58616A;
+    --ment-3:#747F8B;
+    --ment-4:#9099A2;
+
+    /* emotional: sage green, ordered by intensity rather than four distinct hues —
+       darkest for the most activated state, palest for the most serene */
+    --emo-1:#A8B3A0; /* low energy + unpleasant */
+    --emo-2:#E1E5DE; /* low energy + pleasant */
+    --emo-3:#8F9D84; /* high energy + unpleasant */
+    --emo-4:#C8CFC2; /* high energy + pleasant */
+  }
+
+  .lang-toggle{
+    display:flex;
+    gap:6px;
+    margin-bottom:10px;
+  }
+  .lang-flag{
+    background:none;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:3px;
+    line-height:0;
+    cursor:pointer;
+    opacity:0.55;
+  }
+  .lang-flag svg{ display:block; width:26px; height:18px; border-radius:2px; }
+  .lang-flag.active{ opacity:1; border-color:var(--line-strong); }
+  .lang-flag:hover{ opacity:0.85; }
+
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
@@ -664,51 +710,69 @@
 <div class="wrap">
 
   <header>
-    <h1>Check-In Compass</h1>
-    <p class="sub">First, note the context.</p>
-    <p class="sub">Choose a quadrant, then find the word that fits — read what it means, note a trigger that put you there.</p>
+    <div class="lang-toggle">
+      <button type="button" class="lang-flag" id="lang-en" aria-label="English" aria-pressed="true">
+        <svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">
+          <rect width="30" height="20" fill="#00247d"/>
+          <path d="M0,0 L30,20 M30,0 L0,20" stroke="#fff" stroke-width="4"/>
+          <path d="M0,0 L30,20 M30,0 L0,20" stroke="#cf142b" stroke-width="1.6"/>
+          <path d="M15,0 V20 M0,10 H30" stroke="#fff" stroke-width="6"/>
+          <path d="M15,0 V20 M0,10 H30" stroke="#cf142b" stroke-width="2.4"/>
+        </svg>
+      </button>
+      <button type="button" class="lang-flag" id="lang-fr" aria-label="Français" aria-pressed="false">
+        <svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">
+          <rect width="10" height="20" fill="#002395"/>
+          <rect x="10" width="10" height="20" fill="#fff"/>
+          <rect x="20" width="10" height="20" fill="#ed2939"/>
+        </svg>
+      </button>
+    </div>
+    <h1 data-i18n="appTitle">Check-In Compass</h1>
+    <p class="sub" data-i18n="sub1">First, note the context.</p>
+    <p class="sub" data-i18n="sub2">Choose a quadrant, then find the word that fits — read what it means, note a trigger that put you there.</p>
   </header>
 
   <div id="main-view">
   <div id="all-done" style="display:none;">
-    <p class="all-done-msg">Physical, Mental, and Emotional are all logged for today. Here's your reading.</p>
-    <button class="check-in-again-btn" id="check-in-again-btn">Check in again</button>
+    <p class="all-done-msg" data-i18n="allDoneMsg">Physical, Mental, and Emotional are all logged for today. Here's your reading.</p>
+    <button class="check-in-again-btn" id="check-in-again-btn" data-i18n="checkInAgain">Check in again</button>
   </div>
 
   <!-- context intake: asked once, before the first quadrant -->
   <div id="context-intake">
     <div class="field-group">
-      <div class="field-label"><span>What were you doing?</span></div>
+      <div class="field-label"><span data-i18n="fieldActivity">What were you doing?</span></div>
       <div class="chip-row" id="chips-activity"></div>
     </div>
 
     <div class="field-group">
-      <div class="field-label"><span>Who were you with?</span></div>
+      <div class="field-label"><span data-i18n="fieldCompany">Who were you with?</span></div>
       <div class="chip-row" id="chips-company"></div>
     </div>
 
     <div class="field-group">
-      <div class="field-label"><span>Where were you?</span></div>
+      <div class="field-label"><span data-i18n="fieldLocation">Where were you?</span></div>
       <div class="chip-row" id="chips-location"></div>
     </div>
 
     <div class="confirm-row">
-      <span class="confirm-hint">Same for all three check-ins</span>
-      <button class="next-arrow" id="intake-continue" aria-label="Continue to check-in" disabled>→</button>
+      <span class="confirm-hint" data-i18n="confirmHintIntake">Same for all three check-ins</span>
+      <button class="next-arrow" id="intake-continue" data-i18n-aria="continueToCheckin" aria-label="Continue to check-in" disabled>→</button>
     </div>
   </div>
 
   <div id="checkin-flow" style="display:none;">
   <div class="tabs">
-    <button class="tab active" data-tab="physical">Physical<span class="tag">Energy · Ease</span></button>
-    <button class="tab" data-tab="mental">Mental<span class="tag">Clarity · Direction</span></button>
-    <button class="tab" data-tab="emotional">Emotional<span class="tag">Energy · Mood</span></button>
+    <button class="tab active" data-tab="physical"><span data-i18n="tabPhysical">Physical</span><span class="tag" data-i18n="tagPhysical">Energy · Ease</span></button>
+    <button class="tab" data-tab="mental"><span data-i18n="tabMental">Mental</span><span class="tag" data-i18n="tagMental">Clarity · Direction</span></button>
+    <button class="tab" data-tab="emotional"><span data-i18n="tabEmotional">Emotional</span><span class="tag" data-i18n="tagEmotional">Energy · Mood</span></button>
   </div>
 
   <!-- PHYSICAL -->
   <div class="panel" id="panel-physical" data-category="physical">
     <div class="compass-stage">
-      <p class="stage-prompt">Tap the zone that best describes how your body feels right now.</p>
+      <p class="stage-prompt" data-i18n="stagePhysical">Tap the zone that best describes how your body feels right now.</p>
       <div class="compass">
         <div class="quadgrid"></div>
         <div class="wordpanel"></div>
@@ -719,7 +783,7 @@
   <!-- MENTAL -->
   <div class="panel" id="panel-mental" data-category="mental" style="display:none;">
     <div class="compass-stage">
-      <p class="stage-prompt">Tap the zone that best describes how your mind feels right now.</p>
+      <p class="stage-prompt" data-i18n="stageMental">Tap the zone that best describes how your mind feels right now.</p>
       <div class="compass">
         <div class="quadgrid"></div>
         <div class="wordpanel"></div>
@@ -730,7 +794,7 @@
   <!-- EMOTIONAL -->
   <div class="panel" id="panel-emotional" data-category="emotional" style="display:none;">
     <div class="compass-stage">
-      <p class="stage-prompt">Tap the zone that best describes how you feel right now.</p>
+      <p class="stage-prompt" data-i18n="stageEmotional">Tap the zone that best describes how you feel right now.</p>
       <div class="compass">
         <div class="quadgrid"></div>
         <div class="wordpanel"></div>
@@ -742,32 +806,32 @@
   <div class="card" id="card">
     <div id="card-confirm">
       <div class="card-topbar">
-        <button class="card-back-btn" id="card-back-1">‹ Back</button>
+        <button class="card-back-btn" id="card-back-1" data-i18n="back">‹ Back</button>
       </div>
       <p class="word-title" id="card-word"></p>
       <p class="def" id="card-def"></p>
       <div class="confirm-row">
-        <span class="confirm-hint">Log this check-in</span>
-        <button class="next-arrow" id="next-arrow" aria-label="Continue to context">→</button>
+        <span class="confirm-hint" data-i18n="confirmHintLog">Log this check-in</span>
+        <button class="next-arrow" id="next-arrow" data-i18n-aria="continueToContext" aria-label="Continue to context">→</button>
       </div>
     </div>
 
     <div id="card-context" style="display:none;">
       <div class="card-topbar">
-        <button class="card-back-btn" id="card-back-2">‹ Back</button>
+        <button class="card-back-btn" id="card-back-2" data-i18n="back">‹ Back</button>
         <span class="context-word-tag" id="context-word-tag"></span>
       </div>
 
       <div class="field-group">
         <div class="field-label">
-          <span>What might be causing you to be feeling <span id="trigger-word"></span>?</span>
-          <span class="optional-tag">optional</span>
+          <span id="trigger-label-text">What might be causing you to be feeling <span id="trigger-word"></span>?</span>
+          <span class="optional-tag" data-i18n="optional">optional</span>
         </div>
-        <textarea id="card-trigger" placeholder="A line or two, if something specific led here…"></textarea>
+        <textarea id="card-trigger" data-i18n-placeholder="triggerPlaceholder" placeholder="A line or two, if something specific led here…"></textarea>
       </div>
 
       <div class="save-row">
-        <button class="save-btn" id="save-btn">Add to today's reading</button>
+        <button class="save-btn" id="save-btn" data-i18n="saveBtn">Add to today's reading</button>
       </div>
     </div>
   </div>
@@ -776,14 +840,14 @@
   <!-- today's reading -->
   <div class="reading">
     <div class="reading-head">
-      <h2>Today's reading</h2>
+      <h2 data-i18n="readingHeading">Today's reading</h2>
       <div class="reading-head-actions">
-        <button class="copy-btn" id="lookback-open-btn">Look back</button>
-        <button class="copy-btn" id="copy-reading-btn">Copy as text</button>
+        <button class="copy-btn" id="lookback-open-btn" data-i18n="lookbackOpenBtn">Look back</button>
+        <button class="copy-btn" id="copy-reading-btn" data-i18n="copyReadingBtn">Copy as text</button>
       </div>
     </div>
     <div id="reading-list">
-      <p class="reading-empty">Nothing logged yet — pick a word above to start.</p>
+      <p class="reading-empty" data-i18n="readingEmpty">Nothing logged yet — pick a word above to start.</p>
     </div>
   </div>
   </div>
@@ -791,13 +855,13 @@
   <!-- look back: browse entries across past days -->
   <div id="lookback" style="display:none;">
     <div class="card-topbar">
-      <button class="card-back-btn" id="lookback-back-btn">‹ Back to today</button>
+      <button class="card-back-btn" id="lookback-back-btn" data-i18n="lookbackBackBtn">‹ Back to today</button>
     </div>
-    <p class="stage-prompt" style="margin-top:2px;">Look back</p>
+    <p class="stage-prompt" style="margin-top:2px;" data-i18n="lookbackHeading">Look back</p>
     <div class="lookback-nav">
-      <button type="button" class="lookback-arrow" id="lookback-prev" aria-label="Earlier day">‹</button>
+      <button type="button" class="lookback-arrow" id="lookback-prev" data-i18n-aria="earlierDay" aria-label="Earlier day">‹</button>
       <span class="lookback-date-heading" id="lookback-date-heading"></span>
-      <button type="button" class="lookback-arrow" id="lookback-next" aria-label="Later day">›</button>
+      <button type="button" class="lookback-arrow" id="lookback-next" data-i18n-aria="laterDay" aria-label="Later day">›</button>
     </div>
     <div id="lookback-cards" class="lookback-cards"></div>
   </div>
@@ -805,177 +869,289 @@
 </div>
 
 <script>
+  // ---- language: drives both the string table and the CSS colour palette ----
+  const STORAGE_KEY_LANG = 'checkinCompass.lang';
+  let currentLang = localStorage.getItem(STORAGE_KEY_LANG) || 'en';
+
+  const STRINGS = {
+    en: {
+      appTitle: 'Check-In Compass',
+      sub1: 'First, note the context.',
+      sub2: 'Choose a quadrant, then find the word that fits — read what it means, note a trigger that put you there.',
+      allDoneMsg: "Physical, Mental, and Emotional are all logged for today. Here's your reading.",
+      checkInAgain: 'Check in again',
+      fieldActivity: 'What were you doing?',
+      fieldCompany: 'Who were you with?',
+      fieldLocation: 'Where were you?',
+      confirmHintIntake: 'Same for all three check-ins',
+      continueToCheckin: 'Continue to check-in',
+      tabPhysical: 'Physical', tagPhysical: 'Energy · Ease',
+      tabMental: 'Mental', tagMental: 'Clarity · Direction',
+      tabEmotional: 'Emotional', tagEmotional: 'Energy · Mood',
+      stagePhysical: 'Tap the zone that best describes how your body feels right now.',
+      stageMental: 'Tap the zone that best describes how your mind feels right now.',
+      stageEmotional: 'Tap the zone that best describes how you feel right now.',
+      backToQuadrants: '‹ Quadrants',
+      back: '‹ Back',
+      confirmHintLog: 'Log this check-in',
+      continueToContext: 'Continue to context',
+      optional: 'optional',
+      triggerPlaceholder: 'A line or two, if something specific led here…',
+      saveBtn: "Add to today's reading",
+      readingHeading: "Today's reading",
+      lookbackOpenBtn: 'Look back',
+      copyReadingBtn: 'Copy as text',
+      copiedLabel: 'Copied',
+      readingEmpty: 'Nothing logged yet — pick a word above to start.',
+      deleteAria: 'Delete entry',
+      deleteConfirmText: 'Delete this entry?',
+      cancelBtn: 'Cancel',
+      deleteBtn: 'Delete',
+      lookbackBackBtn: '‹ Back to today',
+      lookbackHeading: 'Look back',
+      lookbackEmpty: 'No previous check-ins yet.',
+      earlierDay: 'Earlier day',
+      laterDay: 'Later day',
+      chipInputPlaceholder: 'Type your own…',
+      chipAddBtn: '+ Add',
+      chipConfirmBtn: 'Add',
+      nothingLoggedToday: 'Nothing logged yet today.',
+      catLower: { physical: 'physical', mental: 'mental', emotional: 'emotional' },
+      catUpper: { physical: 'PHYSICAL', mental: 'MENTAL', emotional: 'EMOTIONAL' }
+    },
+    fr: {
+      appTitle: 'Check-In Compass',
+      sub1: "D'abord, notez le contexte.",
+      sub2: 'Choisissez un cadran, puis trouvez le mot qui convient — lisez ce qu\'il signifie, notez ce qui a pu vous y mener.',
+      allDoneMsg: "Physique, Mental et Émotionnel sont tous consignés pour aujourd'hui. Voici votre lecture du jour.",
+      checkInAgain: 'Faire un nouveau bilan',
+      fieldActivity: 'Que faisiez-vous ?',
+      fieldCompany: 'Avec qui étiez-vous ?',
+      fieldLocation: 'Où étiez-vous ?',
+      confirmHintIntake: 'Identique pour les trois bilans',
+      continueToCheckin: 'Continuer vers le bilan',
+      tabPhysical: 'Physique', tagPhysical: 'Énergie · Aisance',
+      tabMental: 'Mental', tagMental: 'Clarté · Direction',
+      tabEmotional: 'Émotionnel', tagEmotional: 'Énergie · Humeur',
+      stagePhysical: 'Touchez la zone qui décrit le mieux ce que ressent votre corps en ce moment.',
+      stageMental: 'Touchez la zone qui décrit le mieux ce que ressent votre esprit en ce moment.',
+      stageEmotional: 'Touchez la zone qui décrit le mieux ce que vous ressentez en ce moment.',
+      backToQuadrants: '‹ Cadrans',
+      back: '‹ Retour',
+      confirmHintLog: 'Consigner ce bilan',
+      continueToContext: 'Continuer vers le contexte',
+      optional: 'facultatif',
+      triggerPlaceholder: 'Une ligne ou deux, si quelque chose de précis vous y a mené…',
+      saveBtn: 'Ajouter à la lecture du jour',
+      readingHeading: 'Lecture du jour',
+      lookbackOpenBtn: 'Retour en arrière',
+      copyReadingBtn: 'Copier en texte',
+      copiedLabel: 'Copié',
+      readingEmpty: "Rien n'est encore consigné — choisissez un mot ci-dessus pour commencer.",
+      deleteAria: "Supprimer l'entrée",
+      deleteConfirmText: 'Supprimer cette entrée ?',
+      cancelBtn: 'Annuler',
+      deleteBtn: 'Supprimer',
+      lookbackBackBtn: "‹ Retour à aujourd'hui",
+      lookbackHeading: 'Retour en arrière',
+      lookbackEmpty: 'Aucun bilan précédent pour le moment.',
+      earlierDay: 'Jour précédent',
+      laterDay: 'Jour suivant',
+      chipInputPlaceholder: 'Écrivez le vôtre…',
+      chipAddBtn: '+ Ajouter',
+      chipConfirmBtn: 'Ajouter',
+      nothingLoggedToday: "Rien n'est encore consigné aujourd'hui.",
+      catLower: { physical: 'physique', mental: 'mental', emotional: 'émotionnel' },
+      catUpper: { physical: 'PHYSIQUE', mental: 'MENTAL', emotional: 'ÉMOTIONNEL' }
+    }
+  };
+
+  function applyI18nStatic(){
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      if(STRINGS[currentLang][key] !== undefined) el.textContent = STRINGS[currentLang][key];
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+      const key = el.dataset.i18nAria;
+      if(STRINGS[currentLang][key] !== undefined) el.setAttribute('aria-label', STRINGS[currentLang][key]);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.dataset.i18nPlaceholder;
+      if(STRINGS[currentLang][key] !== undefined) el.placeholder = STRINGS[currentLang][key];
+    });
+  }
+
   // ---- data: quadrants, coarse label first, then the fine word set ----
   const DATA = {
     physical: [
       {
-        key:'cb', label:'charged · braced', title:'Charged,<br>Braced', color:'var(--phys-3)',
+        key:'cb', label:'charged · braced', labelFr:'chargé · crispé', title:'Charged,<br>Braced', titleFr:'Chargé,<br>Crispé', color:'var(--phys-3)',
         words:[
-          {w:'Wired', d:'Buzzing with nervous energy, hard to settle into stillness.'},
-          {w:'Keyed-up', d:'Primed and alert, muscles ready before they\u2019re needed.'},
-          {w:'Restless', d:'Unable to find a comfortable position, the body wants to move.'},
-          {w:'Jittery', d:'Small involuntary tension, shaky at the edges.'},
-          {w:'Tense', d:'Held tight, a low simmer of physical alertness.'},
-          {w:'Agitated', d:'Stirred up, unable to settle into ease.'},
-          {w:'Frazzled', d:'Overworked and fraying at the edges.'},
-          {w:'Amped', d:'Pumped up, energy running ahead of purpose.'}
+          {w:"Wired", d:"Buzzing with nervous energy, hard to settle into stillness.", wFr:"Survolt\u00e9", dFr:"Vibrant d'une \u00e9nergie nerveuse, difficile \u00e0 apaiser."},
+          {w:"Keyed-up", d:"Primed and alert, muscles ready before they\u2019re needed.", wFr:"Sur le qui-vive", dFr:"En alerte, les muscles pr\u00eats avant m\u00eame d'en avoir besoin."},
+          {w:"Restless", d:"Unable to find a comfortable position, the body wants to move.", wFr:"F\u00e9brile", dFr:"Incapable de trouver une position confortable, le corps veut bouger."},
+          {w:"Jittery", d:"Small involuntary tension, shaky at the edges.", wFr:"Fr\u00e9missant", dFr:"De petites tensions involontaires, l\u00e9g\u00e8rement tremblant."},
+          {w:"Tense", d:"Held tight, a low simmer of physical alertness.", wFr:"Tendu", dFr:"Maintenu tendu, un feu couvant d'alerte physique."},
+          {w:"Agitated", d:"Stirred up, unable to settle into ease.", wFr:"Agit\u00e9", dFr:"Remu\u00e9, incapable de se poser dans le calme."},
+          {w:"Frazzled", d:"Overworked and fraying at the edges.", wFr:"Sur les nerfs", dFr:"Us\u00e9 par le travail, s'effilochant sur les bords."},
+          {w:"Amped", d:"Pumped up, energy running ahead of purpose.", wFr:"Boost\u00e9", dFr:"Une \u00e9nergie qui devance l'intention."},
         ]
       },
       {
-        key:'cr', label:'charged · released', title:'Charged,<br>Released', color:'var(--phys-4)',
+        key:'cr', label:'charged · released', labelFr:'chargé · relâché', title:'Charged,<br>Released', titleFr:'Chargé,<br>Relâché', color:'var(--phys-4)',
         words:[
-          {w:'Vital', d:'Strong and capable, the body meeting the day with ease.'},
-          {w:'Limber', d:'Joints and muscles moving freely, well warmed.'},
-          {w:'Capable', d:'Trusting the body to do what\u2019s asked of it today.'},
-          {w:'Energised', d:'Charged and ready, momentum already built in.'},
-          {w:'Vibrant', d:'Full-bodied aliveness, colour high.'},
-          {w:'Robust', d:'Sturdy and sound, built for the day.'},
-          {w:'Alive', d:'Every sense switched on and present.'},
-          {w:'Buoyant', d:'Light and lifted, carrying you along.'}
+          {w:"Vital", d:"Strong and capable, the body meeting the day with ease.", wFr:"Vital", dFr:"Fort et capable, le corps accueille la journ\u00e9e sans effort."},
+          {w:"Limber", d:"Joints and muscles moving freely, well warmed.", wFr:"Souple", dFr:"Articulations et muscles qui bougent librement, bien \u00e9chauff\u00e9s."},
+          {w:"Capable", d:"Trusting the body to do what\u2019s asked of it today.", wFr:"Capable", dFr:"Confiant que le corps fera ce qu'on lui demande aujourd'hui."},
+          {w:"Energised", d:"Charged and ready, momentum already built in.", wFr:"\u00c9nergis\u00e9", dFr:"Charg\u00e9 et pr\u00eat, l'\u00e9lan d\u00e9j\u00e0 l\u00e0."},
+          {w:"Vibrant", d:"Full-bodied aliveness, colour high.", wFr:"Vibrant", dFr:"Une vivacit\u00e9 qui occupe tout le corps, les couleurs vives."},
+          {w:"Robust", d:"Sturdy and sound, built for the day.", wFr:"Robuste", dFr:"Solide et sain, taill\u00e9 pour la journ\u00e9e."},
+          {w:"Alive", d:"Every sense switched on and present.", wFr:"Vivant", dFr:"Tous les sens en \u00e9veil et pr\u00e9sents."},
+          {w:"Buoyant", d:"Light and lifted, carrying you along.", wFr:"L\u00e9ger", dFr:"Port\u00e9 par une \u00e9nergie ascendante, entra\u00een\u00e9 sans effort."},
         ]
       },
       {
-        key:'db', label:'depleted · braced', title:'Depleted,<br>Braced', color:'var(--phys-1)',
+        key:'db', label:'depleted · braced', labelFr:'épuisé · crispé', title:'Depleted,<br>Braced', titleFr:'Épuisé,<br>Crispé', color:'var(--phys-1)',
         words:[
-          {w:'Weary', d:'Worn down, each movement costs more than it should.'},
-          {w:'Achy', d:'Specific, localised soreness making itself known.'},
-          {w:'Stiff', d:'Reduced range, movement meets resistance.'},
-          {w:'Drained', d:'Reserves spent, running on very little.'},
-          {w:'Sore', d:'Tender in specific places, tissue asking for rest.'},
-          {w:'Fatigued', d:'Beyond tired \u2014 the kind sleep alone won\u2019t fix.'},
-          {w:'Taut', d:'Pulled tight, little give left in the body.'},
-          {w:'Brittle', d:'Close to the edge, easily tipped further.'}
+          {w:"Weary", d:"Worn down, each movement costs more than it should.", wFr:"Las", dFr:"Us\u00e9, chaque mouvement co\u00fbte plus qu'il ne devrait."},
+          {w:"Achy", d:"Specific, localised soreness making itself known.", wFr:"Endolori", dFr:"Une douleur pr\u00e9cise et localis\u00e9e qui se fait sentir."},
+          {w:"Stiff", d:"Reduced range, movement meets resistance.", wFr:"Raide", dFr:"Amplitude r\u00e9duite, le mouvement rencontre une r\u00e9sistance."},
+          {w:"Drained", d:"Reserves spent, running on very little.", wFr:"Vid\u00e9", dFr:"R\u00e9serves \u00e9puis\u00e9es, il ne reste presque rien."},
+          {w:"Sore", d:"Tender in specific places, tissue asking for rest.", wFr:"Douloureux", dFr:"Sensible \u00e0 des endroits pr\u00e9cis, les tissus r\u00e9clament du repos."},
+          {w:"Fatigued", d:"Beyond tired \u2014 the kind sleep alone won\u2019t fix.", wFr:"Fatigu\u00e9", dFr:"Plus profond que la simple lassitude \u2014 le genre que le sommeil seul ne r\u00e9pare pas."},
+          {w:"Taut", d:"Pulled tight, little give left in the body.", wFr:"Serr\u00e9", dFr:"\u00c9tir\u00e9 au maximum, il ne reste presque plus de mou dans le corps."},
+          {w:"Brittle", d:"Close to the edge, easily tipped further.", wFr:"Cassant", dFr:"Proche de la limite, facilement bascul\u00e9 plus loin."},
         ]
       },
       {
-        key:'dr', label:'depleted · released', title:'Depleted,<br>Released', color:'var(--phys-2)',
+        key:'dr', label:'depleted · released', labelFr:'épuisé · relâché', title:'Depleted,<br>Released', titleFr:'Épuisé,<br>Relâché', color:'var(--phys-2)',
         words:[
-          {w:'Languid', d:'Unhurried heaviness, in no rush to move.'},
-          {w:'Heavy', d:'Limbs carrying more weight than usual, grounded low.'},
-          {w:'Rested', d:'Recovered \u2014 the good kind of stillness.'},
-          {w:'Loose', d:'Unclenched, nothing held or braced.'},
-          {w:'Sluggish', d:'Slow to start, moving through treacle.'},
-          {w:'Mellow', d:'Soft-edged and unhurried, nothing pressing.'},
-          {w:'Slack', d:'Let go entirely, no tension held anywhere.'},
-          {w:'Spent', d:'Emptied out, little left to draw on.'}
+          {w:"Languid", d:"Unhurried heaviness, in no rush to move.", wFr:"Languide", dFr:"Une lourdeur sans h\u00e2te, aucune envie de bouger."},
+          {w:"Heavy", d:"Limbs carrying more weight than usual, grounded low.", wFr:"Lourd", dFr:"Les membres p\u00e8sent plus que d'habitude, ancr\u00e9 au sol."},
+          {w:"Rested", d:"Recovered \u2014 the good kind of stillness.", wFr:"Repos\u00e9", dFr:"R\u00e9cup\u00e9r\u00e9 \u2014 le bon genre d'immobilit\u00e9."},
+          {w:"Loose", d:"Unclenched, nothing held or braced.", wFr:"D\u00e9tendu", dFr:"D\u00e9nou\u00e9, rien de tenu ni de retenu."},
+          {w:"Sluggish", d:"Slow to start, moving through treacle.", wFr:"Ralenti", dFr:"Lent \u00e0 d\u00e9marrer, on avance dans la m\u00e9lasse."},
+          {w:"Mellow", d:"Soft-edged and unhurried, nothing pressing.", wFr:"Placide", dFr:"Aux contours doux, rien qui presse."},
+          {w:"Slack", d:"Let go entirely, no tension held anywhere.", wFr:"Mou", dFr:"Totalement rel\u00e2ch\u00e9, sans aucune tension retenue."},
+          {w:"Spent", d:"Emptied out, little left to draw on.", wFr:"\u00c0 plat", dFr:"Vid\u00e9 de ses r\u00e9serves, il ne reste presque rien \u00e0 puiser."},
         ]
-      }
+      },
     ],
     mental: [
       {
-        key:'ss', label:'sharp · scattered', title:'Sharp,<br>Scattered', color:'var(--ment-3)',
+        key:'ss', label:'sharp · scattered', labelFr:'net · dispersé', title:'Sharp,<br>Scattered', titleFr:'Net,<br>Dispersé', color:'var(--ment-3)',
         words:[
-          {w:'Racing', d:'Thoughts moving faster than you can follow them.'},
-          {w:'Overstimulated', d:'Too much input, the mind struggling to filter.'},
-          {w:'Wired-thinking', d:'Sharp but scattered, sparking in several directions at once.'},
-          {w:'Darting', d:'Attention jumping before any one thought settles.'},
-          {w:'Frantic', d:'Urgent and scattered, too much happening to track.'},
-          {w:'Buzzing', d:'Mentally humming, thoughts overlapping in a fast current.'},
-          {w:'Hyperalert', d:'Scanning for what\u2019s next before the present is finished.'},
-          {w:'Fragmented', d:'In pieces \u2014 no single thought completing itself.'}
+          {w:"Racing", d:"Thoughts moving faster than you can follow them.", wFr:"Emball\u00e9", dFr:"Les pens\u00e9es vont plus vite qu'on ne peut les suivre."},
+          {w:"Overstimulated", d:"Too much input, the mind struggling to filter.", wFr:"Surstimul\u00e9", dFr:"Trop de stimuli, l'esprit peine \u00e0 filtrer."},
+          {w:"Wired-thinking", d:"Sharp but scattered, sparking in several directions at once.", wFr:"Sous tension", dFr:"Net mais dispers\u00e9, qui fuse dans plusieurs directions \u00e0 la fois."},
+          {w:"Darting", d:"Attention jumping before any one thought settles.", wFr:"Papillonnant", dFr:"L'attention bondit avant qu'une pens\u00e9e ne se pose."},
+          {w:"Frantic", d:"Urgent and scattered, too much happening to track.", wFr:"Fr\u00e9n\u00e9tique", dFr:"Urgent et dispers\u00e9, trop de choses \u00e0 suivre \u00e0 la fois."},
+          {w:"Buzzing", d:"Mentally humming, thoughts overlapping in a fast current.", wFr:"Bourdonnant", dFr:"Un bourdonnement mental, les pens\u00e9es se chevauchent dans un courant rapide."},
+          {w:"Hyperalert", d:"Scanning for what\u2019s next before the present is finished.", wFr:"Hypervigilant", dFr:"\u00c0 l'aff\u00fbt de la suite avant que le pr\u00e9sent ne soit termin\u00e9."},
+          {w:"Fragmented", d:"In pieces \u2014 no single thought completing itself.", wFr:"Fragment\u00e9", dFr:"En morceaux \u2014 aucune pens\u00e9e n'aboutit."},
         ]
       },
       {
-        key:'sa', label:'sharp · anchored', title:'Sharp,<br>Anchored', color:'var(--ment-4)',
+        key:'sa', label:'sharp · anchored', labelFr:'net · ancré', title:'Sharp,<br>Anchored', titleFr:'Net,<br>Ancré', color:'var(--ment-4)',
         words:[
-          {w:'Clear', d:'Thinking moves easily, nothing in the way.'},
-          {w:'Focused', d:'Attention holding steady on one thing.'},
-          {w:'Absorbed', d:'Fully inside a task, time falls away.'},
-          {w:'Lucid', d:'Sharp and orientated, seeing the shape of things clearly.'},
-          {w:'Sharp', d:'Cutting clean through what\u2019s in front of you.'},
-          {w:'Engaged', d:'Leaned in, attention given willingly.'},
-          {w:'Attentive', d:'Noticing well, taking things in accurately.'},
-          {w:'Precise', d:'Exact \u2014 thinking that lands where it\u2019s aimed.'}
+          {w:"Clear", d:"Thinking moves easily, nothing in the way.", wFr:"Clair", dFr:"La pens\u00e9e avance sans obstacle."},
+          {w:"Focused", d:"Attention holding steady on one thing.", wFr:"Concentr\u00e9", dFr:"L'attention tient bon sur une seule chose."},
+          {w:"Absorbed", d:"Fully inside a task, time falls away.", wFr:"Absorb\u00e9", dFr:"Pleinement dans une t\u00e2che, le temps s'efface."},
+          {w:"Lucid", d:"Sharp and orientated, seeing the shape of things clearly.", wFr:"Lucide", dFr:"Net et orient\u00e9, on voit la forme des choses clairement."},
+          {w:"Sharp", d:"Cutting clean through what\u2019s in front of you.", wFr:"Net", dFr:"Qui tranche net \u00e0 travers ce qui se pr\u00e9sente."},
+          {w:"Engaged", d:"Leaned in, attention given willingly.", wFr:"Impliqu\u00e9", dFr:"Pench\u00e9 en avant, l'attention donn\u00e9e de bon c\u0153ur."},
+          {w:"Attentive", d:"Noticing well, taking things in accurately.", wFr:"Attentif", dFr:"Qui remarque bien, qui saisit les choses avec justesse."},
+          {w:"Precise", d:"Exact \u2014 thinking that lands where it\u2019s aimed.", wFr:"Pr\u00e9cis", dFr:"Exact \u2014 une pens\u00e9e qui atteint sa cible."},
         ]
       },
       {
-        key:'fs', label:'foggy · scattered', title:'Foggy,<br>Scattered', color:'var(--ment-1)',
+        key:'fs', label:'foggy · scattered', labelFr:'flou · dispersé', title:'Foggy,<br>Scattered', titleFr:'Flou,<br>Dispersé', color:'var(--ment-1)',
         words:[
-          {w:'Overwhelmed', d:'Too much to hold, nothing sorting itself out.'},
-          {w:'Distracted', d:'Attention keeps sliding off what you meant to do.'},
-          {w:'Cluttered', d:'Many half-formed thoughts, none of them finished.'},
-          {w:'Adrift', d:'No clear thread to follow, mind loosely floating.'},
-          {w:'Muddled', d:'Thoughts tangled together, hard to separate one from another.'},
-          {w:'Foggy', d:'A soft haze over everything, edges unclear.'},
-          {w:'Scattered', d:'In several places at once, none of them settled.'},
-          {w:'Confused', d:'Losing the thread of what you were following.'}
+          {w:"Overwhelmed", d:"Too much to hold, nothing sorting itself out.", wFr:"D\u00e9bord\u00e9", dFr:"Trop \u00e0 contenir, rien ne se range de soi-m\u00eame."},
+          {w:"Distracted", d:"Attention keeps sliding off what you meant to do.", wFr:"Distrait", dFr:"L'attention glisse sans cesse loin de ce qu'on voulait faire."},
+          {w:"Cluttered", d:"Many half-formed thoughts, none of them finished.", wFr:"Encombr\u00e9", dFr:"De nombreuses pens\u00e9es \u00e0 moiti\u00e9 form\u00e9es, aucune achev\u00e9e."},
+          {w:"Adrift", d:"No clear thread to follow, mind loosely floating.", wFr:"\u00c0 la d\u00e9rive", dFr:"Aucun fil clair \u00e0 suivre, l'esprit flotte sans attache."},
+          {w:"Muddled", d:"Thoughts tangled together, hard to separate one from another.", wFr:"Embrouill\u00e9", dFr:"Des pens\u00e9es emm\u00eal\u00e9es, difficiles \u00e0 d\u00e9m\u00ealer les unes des autres."},
+          {w:"Foggy", d:"A soft haze over everything, edges unclear.", wFr:"Brumeux", dFr:"Une brume douce sur toute chose, les contours flous."},
+          {w:"Scattered", d:"In several places at once, none of them settled.", wFr:"Dispers\u00e9", dFr:"\u00c0 plusieurs endroits \u00e0 la fois, rien n'y est pos\u00e9."},
+          {w:"Confused", d:"Losing the thread of what you were following.", wFr:"Confus", dFr:"On perd le fil de ce qu'on suivait."},
         ]
       },
       {
-        key:'fa', label:'foggy · anchored', title:'Foggy,<br>Anchored', color:'var(--ment-2)',
+        key:'fa', label:'foggy · anchored', labelFr:'flou · ancré', title:'Foggy,<br>Anchored', titleFr:'Flou,<br>Ancré', color:'var(--ment-2)',
         words:[
-          {w:'Quiet', d:'Still, without much traffic passing through.'},
-          {w:'Daydreaming', d:'Gently elsewhere, not tracking the present moment.'},
-          {w:'Unfocused', d:'Soft attention, nothing pulled into sharp view.'},
-          {w:'Settled', d:'Calm and unhurried, present without urgency.'},
-          {w:'Calm', d:'Settled and undisturbed, nothing urgent stirring.'},
-          {w:'Drowsy', d:'Heavy-lidded, mind drifting toward sleep.'},
-          {w:'Hazy', d:'Softly unclear, thoughts arriving through a veil.'},
-          {w:'Still', d:'Quiet enough to hear very little at all.'}
+          {w:"Quiet", d:"Still, without much traffic passing through.", wFr:"Silencieux", dFr:"Immobile, sans grand passage."},
+          {w:"Daydreaming", d:"Gently elsewhere, not tracking the present moment.", wFr:"R\u00eaveur", dFr:"Doucement ailleurs, sans suivre le moment pr\u00e9sent."},
+          {w:"Unfocused", d:"Soft attention, nothing pulled into sharp view.", wFr:"Flottant", dFr:"Une attention douce, rien n'est net \u00e0 l'\u0153il."},
+          {w:"Settled", d:"Calm and unhurried, present without urgency.", wFr:"Pos\u00e9", dFr:"Calme et sans h\u00e2te, pr\u00e9sent sans urgence."},
+          {w:"Calm", d:"Settled and undisturbed, nothing urgent stirring.", wFr:"Calme", dFr:"Apais\u00e9 et sans trouble, rien qui s'agite."},
+          {w:"Drowsy", d:"Heavy-lidded, mind drifting toward sleep.", wFr:"Somnolent", dFr:"Les paupi\u00e8res lourdes, l'esprit glissant vers le sommeil."},
+          {w:"Hazy", d:"Softly unclear, thoughts arriving through a veil.", wFr:"Vaporeux", dFr:"Doucement flou, les pens\u00e9es arrivent voil\u00e9es."},
+          {w:"Still", d:"Quiet enough to hear very little at all.", wFr:"Tranquille", dFr:"Assez calme pour n'entendre presque rien."},
         ]
-      }
+      },
     ],
     emotional: [
       {
-        key:'hu', label:'high energy · unpleasant', title:'High Energy,<br>Unpleasant', color:'var(--emo-3)',
+        key:'hu', label:'high energy · unpleasant', labelFr:'haute énergie · déplaisant', title:'High Energy,<br>Unpleasant', titleFr:'Haute Énergie,<br>Déplaisant', color:'var(--emo-3)',
         words:[
-          {w:'Angry', d:'Strongly bothered by something that feels unfair.'},
-          {w:'Anxious', d:'On edge, bracing for something that hasn\u2019t happened yet.'},
-          {w:'Overwhelmed', d:'Too much arriving at once, no clear way to sort it.'},
-          {w:'Frustrated', d:'Blocked from something you\u2019re trying to reach.'},
-          {w:'Stressed', d:'Under pressure, resources feeling stretched thin.'},
-          {w:'Nervous', d:'Uneasy about what\u2019s coming, a low hum of worry.'},
-          {w:'Irritated', d:'Annoyed by something small that keeps chafing.'},
-          {w:'Panicked', d:'Sudden, sharp alarm \u2014 the body ahead of the mind.'}
+          {w:"Angry", d:"Strongly bothered by something that feels unfair.", wFr:"En col\u00e8re", dFr:"Fortement d\u00e9rang\u00e9 par quelque chose qui semble injuste."},
+          {w:"Anxious", d:"On edge, bracing for something that hasn\u2019t happened yet.", wFr:"Anxieux", dFr:"\u00c0 cran, en attente d'un \u00e9v\u00e9nement qui n'est pas encore arriv\u00e9."},
+          {w:"Overwhelmed", d:"Too much arriving at once, no clear way to sort it.", wFr:"D\u00e9bord\u00e9", dFr:"Trop de choses arrivent \u00e0 la fois, sans fa\u00e7on claire de les trier."},
+          {w:"Frustrated", d:"Blocked from something you\u2019re trying to reach.", wFr:"Frustr\u00e9", dFr:"Emp\u00each\u00e9 d'atteindre quelque chose qu'on cherche \u00e0 obtenir."},
+          {w:"Stressed", d:"Under pressure, resources feeling stretched thin.", wFr:"Stress\u00e9", dFr:"Sous pression, les ressources semblent tendues \u00e0 l'extr\u00eame."},
+          {w:"Nervous", d:"Uneasy about what\u2019s coming, a low hum of worry.", wFr:"Nerveux", dFr:"Mal \u00e0 l'aise face \u00e0 ce qui s'en vient, un l\u00e9ger fond d'inqui\u00e9tude."},
+          {w:"Irritated", d:"Annoyed by something small that keeps chafing.", wFr:"Irrit\u00e9", dFr:"Agac\u00e9 par un d\u00e9tail qui persiste et qui use."},
+          {w:"Panicked", d:"Sudden, sharp alarm \u2014 the body ahead of the mind.", wFr:"Paniqu\u00e9", dFr:"Une alerte soudaine et vive \u2014 le corps en avance sur l'esprit."},
         ]
       },
       {
-        key:'hp', label:'high energy · pleasant', title:'High Energy,<br>Pleasant', color:'var(--emo-4)',
+        key:'hp', label:'high energy · pleasant', labelFr:'haute énergie · agréable', title:'High Energy,<br>Pleasant', titleFr:'Haute Énergie,<br>Agréable', color:'var(--emo-4)',
         words:[
-          {w:'Happy', d:'Genuinely pleased with how things are.'},
-          {w:'Excited', d:'Looking forward to something, energy leaning toward it.'},
-          {w:'Joyful', d:'A fuller, warmer happy \u2014 it fills the room.'},
-          {w:'Enthusiastic', d:'Eager and animated, keen to get started.'},
-          {w:'Confident', d:'Sure-footed, trusting your own judgment.'},
-          {w:'Proud', d:'Satisfied in something you did or were part of.'},
-          {w:'Inspired', d:'Moved to create or act by something you\u2019ve felt or seen.'},
-          {w:'Delighted', d:'Pleasantly surprised, charmed by the moment.'}
+          {w:"Happy", d:"Genuinely pleased with how things are.", wFr:"Heureux", dFr:"R\u00e9ellement satisfait de la tournure des choses."},
+          {w:"Excited", d:"Looking forward to something, energy leaning toward it.", wFr:"Impatient", dFr:"Impatient de ce qui s'en vient, l'\u00e9nergie tourn\u00e9e vers l'avant."},
+          {w:"Joyful", d:"A fuller, warmer happy \u2014 it fills the room.", wFr:"Joyeux", dFr:"Un bonheur plus plein et plus chaud \u2014 il remplit la pi\u00e8ce."},
+          {w:"Enthusiastic", d:"Eager and animated, keen to get started.", wFr:"Enthousiaste", dFr:"Vif et anim\u00e9, pr\u00eat \u00e0 se lancer."},
+          {w:"Confident", d:"Sure-footed, trusting your own judgment.", wFr:"Confiant", dFr:"Assur\u00e9, on fait confiance \u00e0 son propre jugement."},
+          {w:"Proud", d:"Satisfied in something you did or were part of.", wFr:"Fier", dFr:"Satisfait de quelque chose qu'on a fait ou dont on a fait partie."},
+          {w:"Inspired", d:"Moved to create or act by something you\u2019ve felt or seen.", wFr:"Inspir\u00e9", dFr:"Pouss\u00e9 \u00e0 cr\u00e9er ou agir par quelque chose de ressenti ou de vu."},
+          {w:"Delighted", d:"Pleasantly surprised, charmed by the moment.", wFr:"Ravi", dFr:"Agr\u00e9ablement surpris, charm\u00e9 par l'instant."},
         ]
       },
       {
-        key:'lu', label:'low energy · unpleasant', title:'Low Energy,<br>Unpleasant', color:'var(--emo-1)',
+        key:'lu', label:'low energy · unpleasant', labelFr:'basse énergie · déplaisant', title:'Low Energy,<br>Unpleasant', titleFr:'Basse Énergie,<br>Déplaisant', color:'var(--emo-1)',
         words:[
-          {w:'Sad', d:'A heaviness around loss or disappointment.'},
-          {w:'Lonely', d:'Wanting connection that isn\u2019t currently there.'},
-          {w:'Disappointed', d:'Something hoped for didn\u2019t happen.'},
-          {w:'Discouraged', d:'Losing heart about a path you were on.'},
-          {w:'Bored', d:'Under-stimulated, time feels slow.'},
-          {w:'Tired', d:'Low on emotional reserves, wanting to withdraw.'},
-          {w:'Hopeless', d:'Can\u2019t see a way forward from here.'},
-          {w:'Numb', d:'Muted, distant from your own reactions.'}
+          {w:"Sad", d:"A heaviness around loss or disappointment.", wFr:"Triste", dFr:"Une lourdeur autour d'une perte ou d'une d\u00e9ception."},
+          {w:"Lonely", d:"Wanting connection that isn\u2019t currently there.", wFr:"Esseul\u00e9", dFr:"Un d\u00e9sir de lien qui n'est pas l\u00e0 en ce moment."},
+          {w:"Disappointed", d:"Something hoped for didn\u2019t happen.", wFr:"D\u00e9\u00e7u", dFr:"Quelque chose d'esp\u00e9r\u00e9 ne s'est pas produit."},
+          {w:"Discouraged", d:"Losing heart about a path you were on.", wFr:"D\u00e9courag\u00e9", dFr:"On perd courage sur un chemin qu'on suivait."},
+          {w:"Bored", d:"Under-stimulated, time feels slow.", wFr:"Ennuy\u00e9", dFr:"Sous-stimul\u00e9, le temps semble lent."},
+          {w:"Tired", d:"Low on emotional reserves, wanting to withdraw.", wFr:"\u00c9teint", dFr:"Bas en r\u00e9serves \u00e9motionnelles, avec l'envie de se retirer."},
+          {w:"Hopeless", d:"Can\u2019t see a way forward from here.", wFr:"D\u00e9sesp\u00e9r\u00e9", dFr:"On ne voit plus de chemin \u00e0 partir d'ici."},
+          {w:"Numb", d:"Muted, distant from your own reactions.", wFr:"Engourdi", dFr:"\u00c9touff\u00e9, distant de ses propres r\u00e9actions."},
         ]
       },
       {
-        key:'lp', label:'low energy · pleasant', title:'Low Energy,<br>Pleasant', color:'var(--emo-2)',
+        key:'lp', label:'low energy · pleasant', labelFr:'basse énergie · agréable', title:'Low Energy,<br>Pleasant', titleFr:'Basse Énergie,<br>Agréable', color:'var(--emo-2)',
         words:[
-          {w:'Calm', d:'Even and unhurried, nothing pulling at you.'},
-          {w:'Content', d:'Feeling complete, without needing anything more right now.'},
-          {w:'Relaxed', d:'Tension let go, at ease in the moment.'},
-          {w:'Peaceful', d:'Quiet inside, nothing at odds.'},
-          {w:'Grateful', d:'Aware of what you have, warmed by it.'},
-          {w:'Secure', d:'Steady and safe, trusting what\u2019s around you.'},
-          {w:'Satisfied', d:'Enough has been met \u2014 nothing left wanting.'},
-          {w:'Serene', d:'A deep, settled calm that doesn\u2019t waver easily.'}
+          {w:"Calm", d:"Even and unhurried, nothing pulling at you.", wFr:"Calme", dFr:"\u00c9gal et sans h\u00e2te, rien qui tire dessus."},
+          {w:"Content", d:"Feeling complete, without needing anything more right now.", wFr:"Content", dFr:"Se sentir complet, sans avoir besoin de rien de plus pour l'instant."},
+          {w:"Relaxed", d:"Tension let go, at ease in the moment.", wFr:"D\u00e9contract\u00e9", dFr:"Tension rel\u00e2ch\u00e9e, \u00e0 l'aise dans l'instant."},
+          {w:"Peaceful", d:"Quiet inside, nothing at odds.", wFr:"Paisible", dFr:"Calme \u00e0 l'int\u00e9rieur, rien en d\u00e9saccord."},
+          {w:"Grateful", d:"Aware of what you have, warmed by it.", wFr:"Reconnaissant", dFr:"Conscient de ce qu'on a, r\u00e9chauff\u00e9 par cela."},
+          {w:"Secure", d:"Steady and safe, trusting what\u2019s around you.", wFr:"En s\u00e9curit\u00e9", dFr:"Stable et en confiance dans ce qui nous entoure."},
+          {w:"Satisfied", d:"Enough has been met \u2014 nothing left wanting.", wFr:"Satisfait", dFr:"Le compte y est \u2014 il ne manque plus rien."},
+          {w:"Serene", d:"A deep, settled calm that doesn\u2019t waver easily.", wFr:"Serein", dFr:"Un calme profond et stable qui ne vacille pas facilement."},
         ]
-      }
+      },
     ]
   };
 
-  const dotColor = { physical: '#F5B642', mental: '#4A90E2', emotional: '#6A3F8E' };
+  const dotColor = { physical: 'var(--phys-4)', mental: 'var(--ment-3)', emotional: 'var(--emo-4)' };
 
   // ---- persistence: entries kept indefinitely, chip vocabulary too ----
   const STORAGE_KEY_ENTRIES = 'checkinCompass.entries';
-  const STORAGE_KEY_CHIPS = 'checkinCompass.chipVocab';
+  function chipStorageKey(lang){ return 'checkinCompass.chipVocab.' + lang; }
 
   function todayKey(d){
     d = d || new Date();
@@ -997,12 +1173,12 @@
     catch(e){ /* storage unavailable or full — the session still works, just won't persist */ }
   }
   function saveChipVocab(){
-    try{ localStorage.setItem(STORAGE_KEY_CHIPS, JSON.stringify(CONTEXT_FIELDS)); }
+    try{ localStorage.setItem(chipStorageKey(currentLang), JSON.stringify(CONTEXT_FIELDS)); }
     catch(e){ /* non-fatal */ }
   }
   function applyStoredChipVocab(){
     try{
-      const raw = localStorage.getItem(STORAGE_KEY_CHIPS);
+      const raw = localStorage.getItem(chipStorageKey(currentLang));
       if(!raw) return;
       const stored = JSON.parse(raw);
       Object.keys(CONTEXT_FIELDS).forEach(field => {
@@ -1022,12 +1198,20 @@
     if(changed) saveEntries(allEntries);
   })();
 
-  // ---- structured context capture: shared across all three realms ----
-  const CONTEXT_FIELDS = {
-    activity: ['Working', 'Exercising', 'Eating', 'Resting', 'Commuting', 'Socialising', 'Screen time', 'Chores'],
-    company: ['By myself', 'Partner', 'Family', 'Friends', 'Colleagues', 'Strangers'],
-    location: ['Home', 'Work', 'Outdoors', 'Commuting', 'Public place', 'Someone else\u2019s']
+  // ---- structured context capture: shared across all three realms, one vocabulary per language ----
+  const CONTEXT_FIELDS_DEFAULTS = {
+    en: {
+      activity: ['Working', 'Exercising', 'Eating', 'Resting', 'Commuting', 'Socialising', 'Screen time', 'Chores'],
+      company: ['By myself', 'Partner', 'Family', 'Friends', 'Colleagues', 'Strangers'],
+      location: ['Home', 'Work', 'Outdoors', 'Commuting', 'Public place', 'Someone else\u2019s']
+    },
+    fr: {
+      activity: ['Travail', 'Exercice', 'Repas', 'Repos', 'Trajet', 'Socialisation', 'Écrans', 'Tâches ménagères'],
+      company: ['Seul(e)', 'Partenaire', 'Famille', 'Amis', 'Collègues', 'Inconnus'],
+      location: ['Chez moi', 'Travail', 'Extérieur', 'En déplacement', 'Lieu public', 'Chez quelqu\u2019un d\u2019autre']
+    }
   };
+  let CONTEXT_FIELDS = JSON.parse(JSON.stringify(CONTEXT_FIELDS_DEFAULTS[currentLang]));
   applyStoredChipVocab();
   let contextAnswers = { activity: null, company: null, location: null };
 
@@ -1051,7 +1235,7 @@
     const addBtn = document.createElement('button');
     addBtn.type = 'button';
     addBtn.className = 'chip-add';
-    addBtn.textContent = '+ Add';
+    addBtn.textContent = STRINGS[currentLang].chipAddBtn;
     addBtn.addEventListener('click', () => showChipInput(field));
     row.appendChild(addBtn);
   }
@@ -1069,7 +1253,7 @@
 
     const wrap = document.createElement('div');
     wrap.className = 'chip-input-row';
-    wrap.innerHTML = `<input type="text" maxlength="24" placeholder="Type your own\u2026"><button type="button" class="chip-confirm">Add</button>`;
+    wrap.innerHTML = `<input type="text" maxlength="24" placeholder="${escapeHtml(STRINGS[currentLang].chipInputPlaceholder)}"><button type="button" class="chip-confirm">${escapeHtml(STRINGS[currentLang].chipConfirmBtn)}</button>`;
     row.parentElement.appendChild(wrap);
     const input = wrap.querySelector('input');
     input.focus();
@@ -1129,7 +1313,7 @@
       btn.className = 'quad';
       btn.style.background = q.color;
       btn.dataset.key = q.key;
-      btn.innerHTML = `<div class="quad-title">${q.title}</div>`;
+      btn.innerHTML = `<div class="quad-title">${currentLang === 'fr' ? q.titleFr : q.title}</div>`;
       btn.addEventListener('click', () => openQuadrant(category, q.key));
       grid.appendChild(btn);
     });
@@ -1146,8 +1330,8 @@
     wordpanel.style.background = q.color;
     wordpanel.innerHTML = `
       <div class="panel-head">
-        <button class="back-btn">\u2039 Quadrants</button>
-        <span class="quad-label">${q.label}</span>
+        <button class="back-btn">${STRINGS[currentLang].backToQuadrants}</button>
+        <span class="quad-label">${currentLang === 'fr' ? q.labelFr : q.label}</span>
       </div>
       <div class="word-wrap"></div>
     `;
@@ -1155,11 +1339,13 @@
 
     const wrap = wordpanel.querySelector('.word-wrap');
     q.words.forEach(item => {
+      const word = currentLang === 'fr' ? item.wFr : item.w;
+      const def = currentLang === 'fr' ? item.dFr : item.d;
       const btn = document.createElement('button');
       btn.className = 'word';
-      btn.dataset.word = item.w;
-      btn.dataset.def = item.d;
-      btn.textContent = item.w;
+      btn.dataset.word = word;
+      btn.dataset.def = def;
+      btn.textContent = word;
       btn.addEventListener('click', () => selectWord(category, btn));
       wrap.appendChild(btn);
     });
@@ -1175,6 +1361,17 @@
     hideCard();
   }
 
+  function updateTriggerLabel(word){
+    const el = document.getElementById('trigger-label-text');
+    if(currentLang === 'fr'){
+      // quoting the word as a label sidesteps adjective/gender agreement entirely —
+      // "sentiment de « X »" works regardless of X's grammatical gender or form
+      el.innerHTML = `Qu\u2019est-ce qui pourrait expliquer ce sentiment de\u00a0«\u00a0${escapeHtml(word)}\u00a0»\u00a0?`;
+    } else {
+      el.innerHTML = `What might be causing you to be feeling <span id="trigger-word">${escapeHtml(word.charAt(0).toLowerCase() + word.slice(1))}</span>?`;
+    }
+  }
+
   function selectWord(category, btn){
     btn.closest('.word-wrap').querySelectorAll('.word').forEach(w => w.classList.remove('selected'));
     btn.classList.add('selected');
@@ -1184,7 +1381,7 @@
     document.getElementById('card-word').textContent = currentWord;
     document.getElementById('card-def').textContent = currentDef;
     document.getElementById('context-word-tag').textContent = currentWord;
-    document.getElementById('trigger-word').textContent = currentWord.charAt(0).toLowerCase() + currentWord.slice(1);
+    updateTriggerLabel(currentWord);
     resetTrigger();
     showCardConfirm();
     document.getElementById('card').classList.add('show');
@@ -1293,6 +1490,16 @@
     document.getElementById('context-intake').style.display = '';
   }
 
+  function renderReadingList(){
+    const todays = allEntries.filter(e => e.date === todayKey());
+    readingList.innerHTML = '';
+    if(todays.length){
+      todays.forEach(e => readingList.appendChild(buildReadingItem(e)));
+    } else {
+      readingList.innerHTML = `<p class="reading-empty">${escapeHtml(STRINGS[currentLang].readingEmpty)}</p>`;
+    }
+  }
+
   function buildReadingItem(entry){
     const contextLine = [entry.activity, entry.company, entry.location].join(' \u00b7 ');
     const item = document.createElement('div');
@@ -1302,19 +1509,19 @@
       <div class="ri-normal">
         <div class="ri-top">
           <div class="dot" style="background:${dotColor[entry.category]}"></div>
-          <div class="col">${entry.category}</div>
+          <div class="col">${STRINGS[currentLang].catLower[entry.category]}</div>
           <div class="ri-time">${formatEntryTime(entry.timestamp)}</div>
-          <button class="ri-delete" type="button" aria-label="Delete entry">\u00d7</button>
+          <button class="ri-delete" type="button" aria-label="${escapeHtml(STRINGS[currentLang].deleteAria)}">\u00d7</button>
         </div>
         <div class="val">${escapeHtml(entry.word)}</div>
         <div class="note">${escapeHtml(contextLine)}</div>
         ${entry.trigger ? `<div class="note"><em>${escapeHtml(entry.trigger)}</em></div>` : ''}
       </div>
       <div class="ri-confirm" style="display:none;">
-        <p class="ri-confirm-text">Delete this entry?</p>
+        <p class="ri-confirm-text">${escapeHtml(STRINGS[currentLang].deleteConfirmText)}</p>
         <div class="ri-confirm-actions">
-          <button class="ri-cancel" type="button">Cancel</button>
-          <button class="ri-confirm-delete" type="button">Delete</button>
+          <button class="ri-cancel" type="button">${escapeHtml(STRINGS[currentLang].cancelBtn)}</button>
+          <button class="ri-confirm-delete" type="button">${escapeHtml(STRINGS[currentLang].deleteBtn)}</button>
         </div>
       </div>
     `;
@@ -1347,7 +1554,7 @@
     if(inLookback) refreshLookbackDay();
 
     if(!readingList.children.length){
-      readingList.innerHTML = '<p class="reading-empty">Nothing logged yet — pick a word above to start.</p>';
+      readingList.innerHTML = `<p class="reading-empty">${escapeHtml(STRINGS[currentLang].readingEmpty)}</p>`;
     }
 
     if(entry.date !== todayKey()) return;
@@ -1384,11 +1591,11 @@
     const todays = allEntries.filter(e => e.date === todayKey());
     const lines = [`Check-In Compass \u2014 ${formatTodayHeader()}`, ''];
     if(!todays.length){
-      lines.push('Nothing logged yet today.');
+      lines.push(STRINGS[currentLang].nothingLoggedToday);
     } else {
       todays.forEach((e, i) => {
-        const label = e.category.charAt(0).toUpperCase() + e.category.slice(1);
-        lines.push(`${label.toUpperCase()} (${formatEntryTime(e.timestamp)}) \u2014 ${e.word}`);
+        const label = STRINGS[currentLang].catUpper[e.category];
+        lines.push(`${label} (${formatEntryTime(e.timestamp)}) \u2014 ${e.word}`);
         lines.push([e.activity, e.company, e.location].join(' \u00b7 '));
         if(e.trigger) lines.push(e.trigger);
         if(i < todays.length - 1) lines.push('');
@@ -1412,7 +1619,7 @@
     const text = buildReadingText();
     const done = () => {
       const original = btn.textContent;
-      btn.textContent = 'Copied';
+      btn.textContent = STRINGS[currentLang].copiedLabel;
       btn.disabled = true;
       setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1500);
     };
@@ -1442,7 +1649,7 @@
 
     if(!lookbackDays.length){
       heading.textContent = '';
-      cardsWrap.innerHTML = '<p class="lookback-empty">No previous check-ins yet.</p>';
+      cardsWrap.innerHTML = `<p class="lookback-empty">${escapeHtml(STRINGS[currentLang].lookbackEmpty)}</p>`;
       prevBtn.classList.add('hidden');
       nextBtn.classList.add('hidden');
       return;
@@ -1540,10 +1747,7 @@
     const key = todayKey();
     const todays = allEntries.filter(e => e.date === key);
 
-    if(todays.length){
-      readingList.innerHTML = '';
-      todays.forEach(e => readingList.appendChild(buildReadingItem(e)));
-    }
+    renderReadingList();
 
     CATEGORY_ORDER.forEach(c => {
       completed[c] = todays.some(e => e.category === c);
@@ -1574,6 +1778,46 @@
     // otherwise: context-intake stays visible (its default state) and checkin-flow stays hidden
   }
   hydrateToday();
+
+  // ---- language toggle: one flag switches strings, colours (via data-lang), and chip vocab ----
+  function setLang(lang){
+    currentLang = lang;
+    try{ localStorage.setItem(STORAGE_KEY_LANG, lang); } catch(e){ /* non-fatal */ }
+
+    document.documentElement.lang = lang;
+    document.documentElement.dataset.lang = lang;
+    document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+    document.getElementById('lang-fr').classList.toggle('active', lang === 'fr');
+    document.getElementById('lang-en').setAttribute('aria-pressed', lang === 'en');
+    document.getElementById('lang-fr').setAttribute('aria-pressed', lang === 'fr');
+
+    applyI18nStatic();
+
+    // a language switch mid-selection is an edge case, not worth preserving state through —
+    // close any open quadrant or card cleanly instead
+    ALL_CATEGORIES.forEach(closeQuadrant);
+    hideCard();
+
+    buildQuadgrid(panels.physical, 'physical');
+    buildQuadgrid(panels.mental, 'mental');
+    buildQuadgrid(panels.emotional, 'emotional');
+
+    CONTEXT_FIELDS = JSON.parse(JSON.stringify(CONTEXT_FIELDS_DEFAULTS[currentLang]));
+    applyStoredChipVocab();
+    ['activity', 'company', 'location'].forEach(renderChipRow);
+
+    renderReadingList();
+
+    if(document.getElementById('lookback').style.display !== 'none'){
+      renderLookbackDay();
+    }
+  }
+
+  document.getElementById('lang-en').addEventListener('click', () => setLang('en'));
+  document.getElementById('lang-fr').addEventListener('click', () => setLang('fr'));
+
+  // apply the persisted (or default) language on load
+  setLang(currentLang);
 
 
   // ---- offline: register the service worker ----
