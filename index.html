@@ -873,6 +873,20 @@
   const STORAGE_KEY_LANG = 'checkinCompass.lang';
   let currentLang = localStorage.getItem(STORAGE_KEY_LANG) || 'en';
 
+  // a ?lang=fr / ?lang=en tag in the URL (e.g. from the French domain's redirect)
+  // sets the language for this entry point and becomes the remembered preference,
+  // same as tapping the flag manually — then it's wiped from the address bar
+  (function applyLangFromUrl(){
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get('lang');
+    if(requested === 'en' || requested === 'fr'){
+      currentLang = requested;
+      try{ localStorage.setItem(STORAGE_KEY_LANG, requested); } catch(e){ /* non-fatal */ }
+      const cleanUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, '', cleanUrl);
+    }
+  })();
+
   const STRINGS = {
     en: {
       appTitle: 'Check-In Compass',
