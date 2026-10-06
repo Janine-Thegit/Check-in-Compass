@@ -1,20 +1,54 @@
-const CACHE = 'meal-checkin-v3'; // bump on every deploy
-const FILES = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'favicon-32.png'];
+// Check-In Compass — service worker
+// Caches the app shell so it opens and works with no connection.
+// Bump this on any deploy that changes cached files, to invalidate old caches.
+const CACHE_NAME = 'checkin-compass-v13';
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
+const APP_SHELL = [
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
+  );
 });
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys()
-    .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
-    .then(() => self.clients.claim()));
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+      ))
+      .then(() => self.clients.claim())
+  );
 });
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  e.respondWith(caches.open(CACHE).then(cache =>
-    cache.match(e.request).then(hit => {
-      const net = fetch(e.request).then(r => { if (r && r.ok) cache.put(e.request, r.clone()); return r; }).catch(() => hit);
-      return hit || net;
+
+// Stale-while-revalidate: serve from cache instantly if we have it,
+// and quietly refresh the cache in the background from the network.
+// This also lets cross-origin assets (the Google Fonts files) get
+// cached the first time they're fetched, so they work offline after that.
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+
+  event.respondWith(
+    caches.match(event.request).then(cached => {
+      const networkFetch = fetch(event.request)
+        .then(response => {
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => cached);
+
+      return cached || networkFetch;
     })
-  ));
+  );
 });

@@ -1,329 +1,1846 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#18140F">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Check-In Compass</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1F2A37">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Meal Check-in</title>
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Compass">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{
-  --ink:#18140F; --paper:#EFE7DA; --card:#F7F1E6; --line:#D6CABA; --mute:#6E655A;
-  --green:#6B8F5E; --amber:#D9A441; --red:#B5503F; --grey:#A39B8F;
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:16px;line-height:1.45}
-body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
-header{background:var(--ink);color:var(--paper);padding:22px 20px 18px}
-header h1{font-family:'Fraunces',serif;font-weight:600;font-size:26px;margin:0}
-header .sub{opacity:.7;font-size:14px;margin-top:2px}
-main{max-width:560px;margin:0 auto;padding:20px 18px 80px}
-h2{font-family:'Fraunces',serif;font-weight:600;font-size:20px;margin:26px 0 10px}
-h2:first-child{margin-top:4px}
-h3{font-family:'Fraunces',serif;font-weight:600;font-size:17px;margin:22px 0 8px}
-.hidden{display:none!important}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{border:1.5px solid var(--ink);background:transparent;color:var(--ink);padding:10px 16px;border-radius:999px;font:inherit;cursor:pointer}
-.chip.sel{background:var(--ink);color:var(--paper)}
-.chip.add{border-style:dashed;color:var(--mute);border-color:var(--mute)}
-.addrow{display:flex;gap:8px;margin-top:10px}
-.addrow input{flex:1;padding:10px 14px;border:1.5px solid var(--ink);border-radius:999px;background:var(--card);font:inherit}
-.go{display:block;margin:30px auto 0;width:68px;height:68px;border-radius:50%;border:none;background:var(--ink);color:var(--paper);font-size:30px;cursor:pointer}
-.go:disabled{opacity:.25;cursor:default}
-.back{background:none;border:none;font:inherit;color:var(--mute);padding:0;cursor:pointer;margin-bottom:6px}
-.ctx{font-family:'Fraunces',serif;font-size:22px;margin:0 0 4px}
-.rcs{display:flex;flex-direction:column;gap:8px}
-.rc{display:flex;align-items:flex-start;gap:12px;text-align:left;width:100%;border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:12px 14px;font:inherit;color:var(--ink);cursor:pointer}
-.rc .dot{flex:none;width:22px;height:22px;border-radius:50%;margin-top:2px}
-.rc .nm{font-weight:500;display:block}
-.rc .rl{font-size:14px;color:var(--mute);display:block}
-.rc.sel{border-color:var(--ink);border-width:2.5px;padding:11.5px 13.5px}
-.g .dot,.dot.g{background:var(--green)}.a .dot,.dot.a{background:var(--amber)}.r .dot,.dot.r{background:var(--red)}.n .dot,.dot.n{background:var(--grey)}
-.save{display:block;width:100%;margin-top:28px;padding:15px;border:none;border-radius:999px;background:var(--ink);color:var(--paper);font:inherit;font-weight:500;cursor:pointer}
-.save:disabled{opacity:.25;cursor:default}
-.head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-.link{background:none;border:1.5px solid var(--ink);border-radius:999px;padding:7px 14px;font:inherit;font-size:14px;cursor:pointer;color:var(--ink)}
-.entry{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:10px;position:relative}
-.entry .top{font-size:13px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
-.entry .mn{font-family:'Fraunces',serif;font-size:19px;margin:2px 0 8px}
-.dots{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--mute)}
-.dots span{display:flex;align-items:center;gap:6px}
-.dots i{width:14px;height:14px;border-radius:50%;display:inline-block}
-.dots i.g{background:var(--green)}.dots i.a{background:var(--amber)}.dots i.r{background:var(--red)}.dots i.n{background:var(--grey)}
-.sum{border-radius:14px;padding:16px 18px;margin-top:10px;color:#fff;display:flex;align-items:center;gap:16px}
-.sum.g{background:var(--green)}.sum.a{background:var(--amber);color:var(--ink)}.sum.r{background:var(--red)}.sum.n{background:var(--grey)}
-.sum .pts{font-family:'Fraunces',serif;font-size:40px;line-height:1}
-.sum .lbl{font-weight:500}
-.sum .sub2{font-size:13px;opacity:.9}
-.badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--mute);margin-left:8px}
-.badge i{width:12px;height:12px;border-radius:50%;display:inline-block}
-.badge i.g{background:var(--green)}.badge i.a{background:var(--amber)}.badge i.r{background:var(--red)}.badge i.n{background:var(--grey)}
-.x{position:absolute;top:8px;right:10px;background:none;border:none;font-size:20px;color:var(--mute);cursor:pointer}
-.confirm{margin-top:10px;font-size:14px;display:flex;gap:14px;align-items:center}
-.confirm button{background:none;border:none;font:inherit;cursor:pointer;color:var(--ink);text-decoration:underline;padding:0}
-.quiet{color:var(--mute);margin:18px 0}
-.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none}
-.toast.on{opacity:1}
+  :root{
+    --ink:#1F2A37;
+    --paper:#EAE1D0;
+    --paper-dim:#B9AD94;
+    --line:rgba(234,225,208,0.14);
+    --line-strong:rgba(234,225,208,0.28);
+
+    /* physical: brand gold family, intensity by energy */
+    --phys-1:#8A6A35; /* depleted+braced */
+    --phys-2:#B3893C; /* depleted+released */
+    --phys-3:#D9A53E; /* charged+braced */
+    --phys-4:#F5B642; /* charged+released — brand gold */
+
+    /* mental: brand blue family, intensity by clarity */
+    --ment-1:#2C4A6E; /* foggy+scattered */
+    --ment-2:#3A6FA0; /* foggy+anchored */
+    --ment-3:#4A90E2; /* sharp+scattered — brand blue */
+    --ment-4:#82B8F0; /* sharp+anchored */
+
+    /* emotional: the four brand accents, one per quadrant */
+    --emo-1:#4A90E2; /* low energy + unpleasant — brand blue */
+    --emo-2:#2E8B68; /* low energy + pleasant — brand green */
+    --emo-3:#6A3F8E; /* high energy + unpleasant — brand purple */
+    --emo-4:#F5B642; /* high energy + pleasant — brand gold */
+  }
+
+  /* ---- french palette: one muted hue per realm instead of three brand hues ---- */
+  html[data-lang="fr"]{
+    --ink:#3A3A3A;
+    --paper:#F8F7F4;
+    --paper-dim:#A6A098;
+    --line:rgba(248,247,244,0.14);
+    --line-strong:rgba(248,247,244,0.28);
+
+    /* physical: soft taupe, darkest = depleted+braced, lightest = charged+released */
+    --phys-1:#7F776E;
+    --phys-2:#989188;
+    --phys-3:#B4AFA8;
+    --phys-4:#CCC8C4;
+
+    /* mental: slate blue, same darkest-to-lightest logic */
+    --ment-1:#41474E;
+    --ment-2:#58616A;
+    --ment-3:#747F8B;
+    --ment-4:#9099A2;
+
+    /* emotional: sage green, ordered by intensity rather than four distinct hues —
+       darkest for the most activated state, palest for the most serene */
+    --emo-1:#A8B3A0; /* low energy + unpleasant */
+    --emo-2:#E1E5DE; /* low energy + pleasant */
+    --emo-3:#8F9D84; /* high energy + unpleasant */
+    --emo-4:#C8CFC2; /* high energy + pleasant */
+  }
+
+  .lang-toggle{
+    display:flex;
+    gap:6px;
+    margin-bottom:10px;
+  }
+  .lang-flag{
+    background:none;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:3px;
+    line-height:0;
+    cursor:pointer;
+    opacity:0.55;
+  }
+  .lang-flag svg{ display:block; width:26px; height:18px; border-radius:2px; }
+  .lang-flag.active{ opacity:1; border-color:var(--line-strong); }
+  .lang-flag:hover{ opacity:0.85; }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{
+    max-width:520px;
+    margin:0 auto;
+    padding:28px 18px 60px;
+  }
+
+  header{
+    margin-bottom:22px;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+    margin:0 0 6px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:500;
+    font-size:28px;
+    line-height:1.15;
+    margin:0 0 4px;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    font-size:13.5px;
+    color:var(--paper-dim);
+    margin:0;
+    line-height:1.5;
+  }
+
+  .all-done-msg{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:15px;
+    line-height:1.5;
+    color:var(--paper);
+    margin:0 0 14px;
+  }
+  .check-in-again-btn{
+    background:none;
+    border:1px solid var(--line-strong);
+    border-radius:999px;
+    color:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    padding:8px 18px;
+    cursor:pointer;
+    letter-spacing:0.01em;
+  }
+  .check-in-again-btn:hover{ background:rgba(234,225,208,0.08); }
+
+  /* tabs */
+  .tabs{
+    display:flex;
+    gap:8px;
+    margin:22px 0 20px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:0;
+  }
+  .tab{
+    background:none;
+    border:none;
+    color:var(--paper-dim);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14px;
+    font-weight:500;
+    padding:8px 4px 12px;
+    cursor:pointer;
+    position:relative;
+    letter-spacing:0.01em;
+  }
+  .tab.active{ color:var(--paper); }
+  .tab.active::after{
+    content:'';
+    position:absolute;
+    left:0; right:0; bottom:-1px;
+    height:2px;
+    background:var(--paper);
+  }
+  .tab .tag{
+    display:block;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--paper-dim);
+    margin-top:2px;
+  }
+
+  /* axis frame */
+  .compass{
+    position:relative;
+    border:1px solid var(--line-strong);
+    border-radius:2px;
+    overflow:hidden;
+  }
+  .quadgrid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr 1fr;
+  }
+  .quad{
+    padding:16px 12px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    gap:8px;
+    min-height:150px;
+    border-right:1px solid rgba(0,0,0,0.18);
+    border-bottom:1px solid rgba(0,0,0,0.18);
+    cursor:pointer;
+    background:none;
+    text-align:left;
+    font-family:inherit;
+    color:var(--ink);
+    transition:filter 0.12s ease;
+  }
+  .quad:hover, .quad:focus-visible{ filter:brightness(1.06); }
+  .quad:nth-child(2){ border-right:none; }
+  .quad:nth-child(4){ border-right:none; }
+  .quad:nth-child(3), .quad:nth-child(4){ border-bottom:none; }
+
+  .quad-label{
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    opacity:0.72;
+  }
+
+  /* stage one: plain quadrant title, no preview words, no count —
+     mirrors the coarse "High Energy Unpleasant" style first screen */
+  .quad{
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+  }
+  .quad-title{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:20px;
+    line-height:1.25;
+    max-width:11ch;
+  }
+
+  .stage-prompt{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:17px;
+    line-height:1.4;
+    text-align:center;
+    color:var(--paper);
+    margin:0 0 14px;
+    padding:0 6px;
+  }
+
+  /* stage two: expanded word panel */
+  .wordpanel{
+    display:none;
+    padding:16px 14px 18px;
+  }
+  .wordpanel.show{ display:block; }
+  .panel-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .back-btn{
+    background:rgba(0,0,0,0.16);
+    border:none;
+    border-radius:999px;
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:12px;
+    font-weight:600;
+    padding:6px 12px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .back-btn:hover{ background:rgba(0,0,0,0.26); }
+  .panel-head .quad-label{ opacity:0.85; }
+
+  .word-wrap{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  .word{
+    background:rgba(0,0,0,0.14);
+    border:1px solid rgba(0,0,0,0.16);
+    border-radius:999px;
+    padding:7px 13px;
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:14.5px;
+    color:var(--ink);
+    cursor:pointer;
+    text-align:left;
+    width:fit-content;
+    transition:transform 0.12s ease, background 0.12s ease;
+  }
+  .word:hover, .word:focus-visible{
+    background:rgba(0,0,0,0.24);
+    transform:translateY(-1px);
+  }
+  .word.selected{
+    background:var(--ink);
+    color:var(--paper);
+    border-color:var(--ink);
+  }
+
+  /* definition card */
+  .card{
+    margin-top:16px;
+    border:1px solid var(--line-strong);
+    border-radius:2px;
+    padding:16px 16px 18px;
+    display:none;
+  }
+  .card.show{ display:block; }
+  .card .word-title{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:20px;
+    margin:0 0 6px;
+  }
+  .card .def{
+    font-size:14px;
+    line-height:1.55;
+    color:var(--paper-dim);
+    margin:0 0 14px;
+  }
+
+  .card-topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+  }
+  .card-back-btn{
+    background:none;
+    border:none;
+    color:var(--paper-dim);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    padding:4px 0;
+    cursor:pointer;
+    letter-spacing:0.01em;
+  }
+  .card-back-btn:hover{ color:var(--paper); }
+  .context-word-tag{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:15px;
+    color:var(--paper);
+  }
+
+  .confirm-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:8px;
+  }
+  .confirm-hint{
+    font-size:12.5px;
+    color:var(--paper-dim);
+  }
+  .next-arrow{
+    width:48px;
+    height:48px;
+    flex-shrink:0;
+    border-radius:50%;
+    background:var(--paper);
+    color:var(--ink);
+    border:none;
+    font-size:20px;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+  }
+  .next-arrow:hover{ opacity:0.88; }
+  .next-arrow:disabled{
+    opacity:0.28;
+    cursor:not-allowed;
+  }
+  .next-arrow:disabled:hover{ opacity:0.28; }
+
+  #context-intake{
+    margin-top:8px;
+  }
+  .card label{
+    display:block;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--paper-dim);
+    margin-bottom:6px;
+  }
+
+  /* structured context: chip fields */
+  .field-group{ margin-bottom:16px; }
+  .field-label{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--paper-dim);
+    margin-bottom:8px;
+  }
+  .field-label .optional-tag{
+    text-transform:none;
+    letter-spacing:0;
+    font-style:italic;
+    opacity:0.75;
+    font-size:11.5px;
+  }
+  .chip-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+  }
+  .chip{
+    background:rgba(234,225,208,0.06);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:6px 13px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:13px;
+    color:var(--paper);
+    cursor:pointer;
+  }
+  .chip:hover{ background:rgba(234,225,208,0.12); }
+  .chip.selected{
+    background:var(--paper);
+    color:var(--ink);
+    border-color:var(--paper);
+    font-weight:600;
+  }
+  .chip-add{
+    background:none;
+    border:1px dashed var(--line-strong);
+    border-radius:999px;
+    padding:6px 13px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:13px;
+    color:var(--paper-dim);
+    cursor:pointer;
+  }
+  .chip-add:hover{ color:var(--paper); border-color:var(--paper-dim); }
+  .chip-input-row{
+    display:flex;
+    gap:6px;
+    margin-top:8px;
+  }
+  .chip-input-row input{
+    flex:1;
+    background:rgba(234,225,208,0.05);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:6px 13px;
+    color:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:13px;
+  }
+  .chip-input-row input::placeholder{ color:rgba(234,225,208,0.32); }
+  .chip-confirm{
+    background:var(--paper);
+    color:var(--ink);
+    border:none;
+    border-radius:999px;
+    padding:6px 15px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+
+  .card textarea{
+    width:100%;
+    background:rgba(234,225,208,0.05);
+    border:1px solid var(--line);
+    border-radius:2px;
+    color:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:13.5px;
+    padding:10px 12px;
+    resize:vertical;
+    min-height:56px;
+    line-height:1.5;
+  }
+  .card textarea::placeholder{ color:rgba(234,225,208,0.32); }
+
+  .save-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:10px;
+  }
+  .save-btn{
+    background:var(--paper);
+    color:var(--ink);
+    border:none;
+    border-radius:999px;
+    padding:8px 18px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    cursor:pointer;
+    letter-spacing:0.01em;
+  }
+  .save-btn:hover{ opacity:0.88; }
+  .save-btn:disabled{
+    opacity:0.32;
+    cursor:not-allowed;
+  }
+  .save-hint{
+    font-size:11.5px;
+    color:var(--paper-dim);
+    text-align:right;
+    margin:6px 0 0;
+    font-style:italic;
+  }
+
+  /* today's reading */
+  .reading{
+    margin-top:34px;
+    border-top:1px solid var(--line);
+    padding-top:20px;
+  }
+  .reading-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .reading-head-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .reading h2{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:16px;
+    margin:0;
+  }
+  .copy-btn{
+    background:rgba(234,225,208,0.06);
+    border:1px solid var(--line);
+    border-radius:999px;
+    color:var(--paper-dim);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:11.5px;
+    font-weight:600;
+    padding:5px 12px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .copy-btn:hover{ background:rgba(234,225,208,0.12); color:var(--paper); }
+  .copy-btn:disabled{ opacity:0.6; cursor:default; }
+  .reading-empty{
+    font-size:13px;
+    color:var(--paper-dim);
+    font-style:italic;
+  }
+
+  /* look back */
+  .lookback-nav{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+    margin:16px 0 20px;
+  }
+  .lookback-date-heading{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:15px;
+    color:var(--paper);
+    text-align:center;
+    min-width:0;
+  }
+  .lookback-arrow{
+    background:rgba(234,225,208,0.06);
+    border:1px solid var(--line);
+    border-radius:50%;
+    width:32px;
+    height:32px;
+    color:var(--paper);
+    font-size:16px;
+    line-height:1;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .lookback-arrow:hover{ background:rgba(234,225,208,0.12); }
+  .lookback-arrow.hidden{ visibility:hidden; }
+  .lookback-empty{
+    font-size:13px;
+    color:var(--paper-dim);
+    font-style:italic;
+    margin-top:6px;
+    text-align:center;
+  }
+  .lookback-cards{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  #reading-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .reading-item{
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:13px 14px 15px;
+  }
+  .reading-item .ri-top{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    margin-bottom:6px;
+  }
+  .dot{
+    width:8px; height:8px;
+    border-radius:50%;
+    flex-shrink:0;
+  }
+  .reading-item .col{
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--paper-dim);
+  }
+  .ri-time{
+    font-size:10.5px;
+    color:var(--paper-dim);
+    opacity:0.7;
+  }
+  .reading-item .val{
+    font-family:'Fraunces', serif;
+    font-size:16px;
+    font-weight:500;
+  }
+  .reading-item .note{
+    font-size:12.5px;
+    color:var(--paper-dim);
+    margin-top:5px;
+    line-height:1.5;
+  }
+  .ri-delete{
+    margin-left:auto;
+    background:none;
+    border:none;
+    color:var(--paper-dim);
+    font-size:17px;
+    line-height:1;
+    padding:2px 4px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .ri-delete:hover{ color:var(--paper); }
+  .ri-confirm-text{
+    font-size:13px;
+    color:var(--paper);
+    margin:0 0 10px;
+  }
+  .ri-confirm-actions{
+    display:flex;
+    gap:8px;
+  }
+  .ri-cancel{
+    background:rgba(234,225,208,0.06);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:6px 14px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:12.5px;
+    color:var(--paper);
+    cursor:pointer;
+  }
+  .ri-cancel:hover{ background:rgba(234,225,208,0.12); }
+  .ri-confirm-delete{
+    background:var(--emo-3);
+    border:none;
+    border-radius:999px;
+    padding:6px 14px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    color:var(--paper);
+    cursor:pointer;
+  }
+  .ri-confirm-delete:hover{ opacity:0.88; }
 </style>
 </head>
 <body>
-<header>
-  <h1>Meal Check-in</h1>
-  <div class="sub" id="today"></div>
-</header>
-<main>
+<div class="wrap">
 
-<section id="s1">
-  <h2>Which meal?</h2>
-  <div class="chips" id="mealChips"></div>
-  <h2>Where?</h2>
-  <div class="chips" id="locChips"></div>
-  <div class="addrow hidden" id="addRow">
-    <input id="addInput" maxlength="30" placeholder="New place" autocomplete="off">
-    <button class="link" id="addOk">Add</button>
+  <header>
+    <div class="lang-toggle">
+      <button type="button" class="lang-flag" id="lang-en" aria-label="English" aria-pressed="true">
+        <svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">
+          <rect width="30" height="20" fill="#00247d"/>
+          <path d="M0,0 L30,20 M30,0 L0,20" stroke="#fff" stroke-width="4"/>
+          <path d="M0,0 L30,20 M30,0 L0,20" stroke="#cf142b" stroke-width="1.6"/>
+          <path d="M15,0 V20 M0,10 H30" stroke="#fff" stroke-width="6"/>
+          <path d="M15,0 V20 M0,10 H30" stroke="#cf142b" stroke-width="2.4"/>
+        </svg>
+      </button>
+      <button type="button" class="lang-flag" id="lang-fr" aria-label="Français" aria-pressed="false">
+        <svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">
+          <rect width="10" height="20" fill="#002395"/>
+          <rect x="10" width="10" height="20" fill="#fff"/>
+          <rect x="20" width="10" height="20" fill="#ed2939"/>
+        </svg>
+      </button>
+    </div>
+    <h1 data-i18n="appTitle">Check-In Compass</h1>
+    <p class="sub" data-i18n="sub1">First, note the context.</p>
+    <p class="sub" data-i18n="sub2">Choose a quadrant, then find the word that fits — read what it means, note a trigger that put you there.</p>
+  </header>
+
+  <div id="main-view">
+  <div id="all-done" style="display:none;">
+    <p class="all-done-msg" data-i18n="allDoneMsg">Physical, Mental, and Emotional are all logged for today. Here's your reading.</p>
+    <button class="check-in-again-btn" id="check-in-again-btn" data-i18n="checkInAgain">Check in again</button>
   </div>
-  <button class="go" id="go1" disabled aria-label="Continue">&rsaquo;</button>
-  <p class="quiet hidden" id="toDayWrap"><button class="link" id="toDay">Today's meals</button></p>
-</section>
 
-<section id="s2" class="hidden">
-  <button class="back" id="back2">&lsaquo; Back</button>
-  <p class="ctx" id="ctx"></p>
-  <h2>Portion size</h2>
-  <div class="rcs" id="portionBox"></div>
-  <h2>Composition</h2>
-  <h3>Protein</h3><div class="rcs" id="proteinBox"></div>
-  <h3>Carbs</h3><div class="rcs" id="carbBox"></div>
-  <h3>Fat</h3><div class="rcs" id="fatBox"></div>
-  <button class="save" id="save" disabled>Save</button>
-</section>
+  <!-- context intake: asked once, before the first quadrant -->
+  <div id="context-intake">
+    <div class="field-group">
+      <div class="field-label"><span data-i18n="fieldActivity">What were you doing?</span></div>
+      <div class="chip-row" id="chips-activity"></div>
+    </div>
 
-<section id="s3" class="hidden">
-  <div class="head">
-    <h2 style="margin:4px 0">Today's meals</h2>
-    <button class="link" id="copy">Copy as text</button>
+    <div class="field-group">
+      <div class="field-label"><span data-i18n="fieldCompany">Who were you with?</span></div>
+      <div class="chip-row" id="chips-company"></div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label"><span data-i18n="fieldLocation">Where were you?</span></div>
+      <div class="chip-row" id="chips-location"></div>
+    </div>
+
+    <div class="confirm-row">
+      <span class="confirm-hint" data-i18n="confirmHintIntake">Same for all three check-ins</span>
+      <button class="next-arrow" id="intake-continue" data-i18n-aria="continueToCheckin" aria-label="Continue to check-in" disabled>→</button>
+    </div>
   </div>
-  <div id="summary"></div>
-  <div id="list"></div>
-  <button class="save" id="again">Add a meal</button>
-</section>
 
-</main>
-<div class="toast" id="toast"></div>
+  <div id="checkin-flow" style="display:none;">
+  <div class="tabs">
+    <button class="tab active" data-tab="physical"><span data-i18n="tabPhysical">Physical</span><span class="tag" data-i18n="tagPhysical">Energy · Ease</span></button>
+    <button class="tab" data-tab="mental"><span data-i18n="tabMental">Mental</span><span class="tag" data-i18n="tagMental">Clarity · Direction</span></button>
+    <button class="tab" data-tab="emotional"><span data-i18n="tabEmotional">Emotional</span><span class="tag" data-i18n="tagEmotional">Energy · Mood</span></button>
+  </div>
+
+  <!-- PHYSICAL -->
+  <div class="panel" id="panel-physical" data-category="physical">
+    <div class="compass-stage">
+      <p class="stage-prompt" data-i18n="stagePhysical">Tap the zone that best describes how your body feels right now.</p>
+      <div class="compass">
+        <div class="quadgrid"></div>
+        <div class="wordpanel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENTAL -->
+  <div class="panel" id="panel-mental" data-category="mental" style="display:none;">
+    <div class="compass-stage">
+      <p class="stage-prompt" data-i18n="stageMental">Tap the zone that best describes how your mind feels right now.</p>
+      <div class="compass">
+        <div class="quadgrid"></div>
+        <div class="wordpanel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMOTIONAL -->
+  <div class="panel" id="panel-emotional" data-category="emotional" style="display:none;">
+    <div class="compass-stage">
+      <p class="stage-prompt" data-i18n="stageEmotional">Tap the zone that best describes how you feel right now.</p>
+      <div class="compass">
+        <div class="quadgrid"></div>
+        <div class="wordpanel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- definition / context capture card: replaces the compass-stage in place -->
+  <div class="card" id="card">
+    <div id="card-confirm">
+      <div class="card-topbar">
+        <button class="card-back-btn" id="card-back-1" data-i18n="back">‹ Back</button>
+      </div>
+      <p class="word-title" id="card-word"></p>
+      <p class="def" id="card-def"></p>
+      <div class="confirm-row">
+        <span class="confirm-hint" data-i18n="confirmHintLog">Log this check-in</span>
+        <button class="next-arrow" id="next-arrow" data-i18n-aria="continueToContext" aria-label="Continue to context">→</button>
+      </div>
+    </div>
+
+    <div id="card-context" style="display:none;">
+      <div class="card-topbar">
+        <button class="card-back-btn" id="card-back-2" data-i18n="back">‹ Back</button>
+        <span class="context-word-tag" id="context-word-tag"></span>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">
+          <span id="trigger-label-text">What might be causing you to be feeling <span id="trigger-word"></span>?</span>
+          <span class="optional-tag" data-i18n="optional">optional</span>
+        </div>
+        <textarea id="card-trigger" data-i18n-placeholder="triggerPlaceholder" placeholder="A line or two, if something specific led here…"></textarea>
+      </div>
+
+      <div class="save-row">
+        <button class="save-btn" id="save-btn" data-i18n="saveBtn">Add to today's reading</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- today's reading -->
+  <div class="reading">
+    <div class="reading-head">
+      <h2 data-i18n="readingHeading">Today's reading</h2>
+      <div class="reading-head-actions">
+        <button class="copy-btn" id="lookback-open-btn" data-i18n="lookbackOpenBtn">Look back</button>
+        <button class="copy-btn" id="copy-reading-btn" data-i18n="copyReadingBtn">Copy as text</button>
+      </div>
+    </div>
+    <div id="reading-list">
+      <p class="reading-empty" data-i18n="readingEmpty">Nothing logged yet — pick a word above to start.</p>
+    </div>
+  </div>
+  </div>
+
+  <!-- look back: browse entries across past days -->
+  <div id="lookback" style="display:none;">
+    <div class="card-topbar">
+      <button class="card-back-btn" id="lookback-back-btn" data-i18n="lookbackBackBtn">‹ Back to today</button>
+    </div>
+    <p class="stage-prompt" style="margin-top:2px;" data-i18n="lookbackHeading">Look back</p>
+    <div class="lookback-nav">
+      <button type="button" class="lookback-arrow" id="lookback-prev" data-i18n-aria="earlierDay" aria-label="Earlier day">‹</button>
+      <span class="lookback-date-heading" id="lookback-date-heading"></span>
+      <button type="button" class="lookback-arrow" id="lookback-next" data-i18n-aria="laterDay" aria-label="Later day">›</button>
+    </div>
+    <div id="lookback-cards" class="lookback-cards"></div>
+  </div>
+
+</div>
 
 <script>
-/* ---------- Colour rules: edit these to suit your plan ---------- */
-const TL = {g:'Green', a:'Amber', r:'Red', n:'None'};
-const NONE = ['None in this','Not part of this one'];
-const RULES = {
-  meal: {
-    portion: {
-      g:['On plan','One plate, no seconds, some plate still showing'],
-      a:['Full','Plate piled high, or a small second serving'],
-      r:['Over','A full second helping, or eaten from the pack or serving dish']
-    },
-    protein: {
-      g:['A palm','About one palm of meat, fish, eggs, tofu or pulses'],
-      a:['Light','Less than a palm'],
-      r:['Barely any','A mouthful or less'],
-      n:NONE
-    },
-    carb: {
-      g:['A cupped hand','Up to one cupped hand of rice, pasta, potato or bread'],
-      a:['Two cupped hands','Between one and two cupped hands'],
-      r:['Three or more','Three cupped hands or more'],
-      n:NONE
-    },
-    fat: {
-      g:['A thumb','Up to one thumb of oil, butter, cheese or dressing'],
-      a:['Two thumbs','Between one and two thumbs'],
-      r:['Three or more','Three thumbs or more, or deep-fried'],
-      n:NONE
+  // ---- language: drives both the string table and the CSS colour palette ----
+  const STORAGE_KEY_LANG = 'checkinCompass.lang';
+  let currentLang = localStorage.getItem(STORAGE_KEY_LANG) || 'en';
+
+  // a ?lang=fr / ?lang=en tag in the URL (e.g. from the French domain's redirect)
+  // sets the language for this entry point and becomes the remembered preference,
+  // same as tapping the flag manually — then it's wiped from the address bar
+  (function applyLangFromUrl(){
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get('lang');
+    if(requested === 'en' || requested === 'fr'){
+      currentLang = requested;
+      try{ localStorage.setItem(STORAGE_KEY_LANG, requested); } catch(e){ /* non-fatal */ }
+      const cleanUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, '', cleanUrl);
     }
-  },
-  snack: {
-    portion: {
-      g:['One handful','Fits in one cupped hand'],
-      a:['Two handfuls','Two cupped hands'],
-      r:['From the pack','Eaten from the packet until it ran out']
+  })();
+
+  const STRINGS = {
+    en: {
+      appTitle: 'Check-In Compass',
+      sub1: 'First, note the context.',
+      sub2: 'Choose a quadrant, then find the word that fits — read what it means, note a trigger that put you there.',
+      allDoneMsg: "Physical, Mental, and Emotional are all logged for today. Here's your reading.",
+      checkInAgain: 'Check in again',
+      fieldActivity: 'What were you doing?',
+      fieldCompany: 'Who were you with?',
+      fieldLocation: 'Where were you?',
+      confirmHintIntake: 'Same for all three check-ins',
+      continueToCheckin: 'Continue to check-in',
+      tabPhysical: 'Physical', tagPhysical: 'Energy · Ease',
+      tabMental: 'Mental', tagMental: 'Clarity · Direction',
+      tabEmotional: 'Emotional', tagEmotional: 'Energy · Mood',
+      stagePhysical: 'Tap the zone that best describes how your body feels right now.',
+      stageMental: 'Tap the zone that best describes how your mind feels right now.',
+      stageEmotional: 'Tap the zone that best describes how you feel right now.',
+      backToQuadrants: '‹ Quadrants',
+      back: '‹ Back',
+      confirmHintLog: 'Log this check-in',
+      continueToContext: 'Continue to context',
+      optional: 'optional',
+      triggerPlaceholder: 'A line or two, if something specific led here…',
+      saveBtn: "Add to today's reading",
+      readingHeading: "Today's reading",
+      lookbackOpenBtn: 'Look back',
+      copyReadingBtn: 'Copy as text',
+      copiedLabel: 'Copied',
+      readingEmpty: 'Nothing logged yet — pick a word above to start.',
+      deleteAria: 'Delete entry',
+      deleteConfirmText: 'Delete this entry?',
+      cancelBtn: 'Cancel',
+      deleteBtn: 'Delete',
+      lookbackBackBtn: '‹ Back to today',
+      lookbackHeading: 'Look back',
+      lookbackEmpty: 'No previous check-ins yet.',
+      earlierDay: 'Earlier day',
+      laterDay: 'Later day',
+      chipInputPlaceholder: 'Type your own…',
+      chipAddBtn: '+ Add',
+      chipConfirmBtn: 'Add',
+      nothingLoggedToday: 'Nothing logged yet today.',
+      catLower: { physical: 'physical', mental: 'mental', emotional: 'emotional' },
+      catUpper: { physical: 'PHYSICAL', mental: 'MENTAL', emotional: 'EMOTIONAL' }
     },
-    protein: {
-      g:['Half a palm','A yoghurt, an egg, a slice of ham'],
-      a:['Less than half a palm','A few bites'],
-      r:['Barely any','A bite or two'],
-      n:NONE
+    fr: {
+      appTitle: 'Check-In Compass',
+      sub1: "D'abord, notez le contexte.",
+      sub2: 'Choisissez un cadran, puis trouvez le mot qui convient — lisez ce qu\'il signifie, notez ce qui a pu vous y mener.',
+      allDoneMsg: "Physique, Mental et Émotionnel sont tous consignés pour aujourd'hui. Voici votre lecture du jour.",
+      checkInAgain: 'Faire un nouveau bilan',
+      fieldActivity: 'Que faisiez-vous ?',
+      fieldCompany: 'Avec qui étiez-vous ?',
+      fieldLocation: 'Où étiez-vous ?',
+      confirmHintIntake: 'Identique pour les trois bilans',
+      continueToCheckin: 'Continuer vers le bilan',
+      tabPhysical: 'Physique', tagPhysical: 'Énergie · Aisance',
+      tabMental: 'Mental', tagMental: 'Clarté · Direction',
+      tabEmotional: 'Émotionnel', tagEmotional: 'Énergie · Humeur',
+      stagePhysical: 'Touchez la zone qui décrit le mieux ce que ressent votre corps en ce moment.',
+      stageMental: 'Touchez la zone qui décrit le mieux ce que ressent votre esprit en ce moment.',
+      stageEmotional: 'Touchez la zone qui décrit le mieux ce que vous ressentez en ce moment.',
+      backToQuadrants: '‹ Cadrans',
+      back: '‹ Retour',
+      confirmHintLog: 'Consigner ce bilan',
+      continueToContext: 'Continuer vers le contexte',
+      optional: 'facultatif',
+      triggerPlaceholder: 'Une ligne ou deux, si quelque chose de précis vous y a mené…',
+      saveBtn: 'Ajouter à la lecture du jour',
+      readingHeading: 'Lecture du jour',
+      lookbackOpenBtn: 'Retour en arrière',
+      copyReadingBtn: 'Copier en texte',
+      copiedLabel: 'Copié',
+      readingEmpty: "Rien n'est encore consigné — choisissez un mot ci-dessus pour commencer.",
+      deleteAria: "Supprimer l'entrée",
+      deleteConfirmText: 'Supprimer cette entrée ?',
+      cancelBtn: 'Annuler',
+      deleteBtn: 'Supprimer',
+      lookbackBackBtn: "‹ Retour à aujourd'hui",
+      lookbackHeading: 'Retour en arrière',
+      lookbackEmpty: 'Aucun bilan précédent pour le moment.',
+      earlierDay: 'Jour précédent',
+      laterDay: 'Jour suivant',
+      chipInputPlaceholder: 'Écrivez le vôtre…',
+      chipAddBtn: '+ Ajouter',
+      chipConfirmBtn: 'Ajouter',
+      nothingLoggedToday: "Rien n'est encore consigné aujourd'hui.",
+      catLower: { physical: 'physique', mental: 'mental', emotional: 'émotionnel' },
+      catUpper: { physical: 'PHYSIQUE', mental: 'MENTAL', emotional: 'ÉMOTIONNEL' }
+    }
+  };
+
+  function applyI18nStatic(){
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      if(STRINGS[currentLang][key] !== undefined) el.textContent = STRINGS[currentLang][key];
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+      const key = el.dataset.i18nAria;
+      if(STRINGS[currentLang][key] !== undefined) el.setAttribute('aria-label', STRINGS[currentLang][key]);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.dataset.i18nPlaceholder;
+      if(STRINGS[currentLang][key] !== undefined) el.placeholder = STRINGS[currentLang][key];
+    });
+  }
+
+  // ---- data: quadrants, coarse label first, then the fine word set ----
+  const DATA = {
+    physical: [
+      {
+        key:'cb', label:'charged · braced', labelFr:'chargé · crispé', title:'Charged,<br>Braced', titleFr:'Chargé,<br>Crispé', color:'var(--phys-3)',
+        words:[
+          {w:"Wired", d:"Buzzing with nervous energy, hard to settle into stillness.", wFr:"Survolt\u00e9", dFr:"Vibrant d'une \u00e9nergie nerveuse, difficile \u00e0 apaiser."},
+          {w:"Keyed-up", d:"Primed and alert, muscles ready before they\u2019re needed.", wFr:"Sur le qui-vive", dFr:"En alerte, les muscles pr\u00eats avant m\u00eame d'en avoir besoin."},
+          {w:"Restless", d:"Unable to find a comfortable position, the body wants to move.", wFr:"F\u00e9brile", dFr:"Incapable de trouver une position confortable, le corps veut bouger."},
+          {w:"Jittery", d:"Small involuntary tension, shaky at the edges.", wFr:"Fr\u00e9missant", dFr:"De petites tensions involontaires, l\u00e9g\u00e8rement tremblant."},
+          {w:"Tense", d:"Held tight, a low simmer of physical alertness.", wFr:"Tendu", dFr:"Maintenu tendu, un feu couvant d'alerte physique."},
+          {w:"Agitated", d:"Stirred up, unable to settle into ease.", wFr:"Agit\u00e9", dFr:"Remu\u00e9, incapable de se poser dans le calme."},
+          {w:"Frazzled", d:"Overworked and fraying at the edges.", wFr:"Sur les nerfs", dFr:"Us\u00e9 par le travail, s'effilochant sur les bords."},
+          {w:"Amped", d:"Pumped up, energy running ahead of purpose.", wFr:"Boost\u00e9", dFr:"Une \u00e9nergie qui devance l'intention."},
+        ]
+      },
+      {
+        key:'cr', label:'charged · released', labelFr:'chargé · relâché', title:'Charged,<br>Released', titleFr:'Chargé,<br>Relâché', color:'var(--phys-4)',
+        words:[
+          {w:"Vital", d:"Strong and capable, the body meeting the day with ease.", wFr:"Vital", dFr:"Fort et capable, le corps accueille la journ\u00e9e sans effort."},
+          {w:"Limber", d:"Joints and muscles moving freely, well warmed.", wFr:"Souple", dFr:"Articulations et muscles qui bougent librement, bien \u00e9chauff\u00e9s."},
+          {w:"Capable", d:"Trusting the body to do what\u2019s asked of it today.", wFr:"Capable", dFr:"Confiant que le corps fera ce qu'on lui demande aujourd'hui."},
+          {w:"Energised", d:"Charged and ready, momentum already built in.", wFr:"\u00c9nergis\u00e9", dFr:"Charg\u00e9 et pr\u00eat, l'\u00e9lan d\u00e9j\u00e0 l\u00e0."},
+          {w:"Vibrant", d:"Full-bodied aliveness, colour high.", wFr:"Vibrant", dFr:"Une vivacit\u00e9 qui occupe tout le corps, les couleurs vives."},
+          {w:"Robust", d:"Sturdy and sound, built for the day.", wFr:"Robuste", dFr:"Solide et sain, taill\u00e9 pour la journ\u00e9e."},
+          {w:"Alive", d:"Every sense switched on and present.", wFr:"Vivant", dFr:"Tous les sens en \u00e9veil et pr\u00e9sents."},
+          {w:"Buoyant", d:"Light and lifted, carrying you along.", wFr:"L\u00e9ger", dFr:"Port\u00e9 par une \u00e9nergie ascendante, entra\u00een\u00e9 sans effort."},
+        ]
+      },
+      {
+        key:'db', label:'depleted · braced', labelFr:'épuisé · crispé', title:'Depleted,<br>Braced', titleFr:'Épuisé,<br>Crispé', color:'var(--phys-1)',
+        words:[
+          {w:"Weary", d:"Worn down, each movement costs more than it should.", wFr:"Las", dFr:"Us\u00e9, chaque mouvement co\u00fbte plus qu'il ne devrait."},
+          {w:"Achy", d:"Specific, localised soreness making itself known.", wFr:"Endolori", dFr:"Une douleur pr\u00e9cise et localis\u00e9e qui se fait sentir."},
+          {w:"Stiff", d:"Reduced range, movement meets resistance.", wFr:"Raide", dFr:"Amplitude r\u00e9duite, le mouvement rencontre une r\u00e9sistance."},
+          {w:"Drained", d:"Reserves spent, running on very little.", wFr:"Vid\u00e9", dFr:"R\u00e9serves \u00e9puis\u00e9es, il ne reste presque rien."},
+          {w:"Sore", d:"Tender in specific places, tissue asking for rest.", wFr:"Douloureux", dFr:"Sensible \u00e0 des endroits pr\u00e9cis, les tissus r\u00e9clament du repos."},
+          {w:"Fatigued", d:"Beyond tired \u2014 the kind sleep alone won\u2019t fix.", wFr:"Fatigu\u00e9", dFr:"Plus profond que la simple lassitude \u2014 le genre que le sommeil seul ne r\u00e9pare pas."},
+          {w:"Taut", d:"Pulled tight, little give left in the body.", wFr:"Serr\u00e9", dFr:"\u00c9tir\u00e9 au maximum, il ne reste presque plus de mou dans le corps."},
+          {w:"Brittle", d:"Close to the edge, easily tipped further.", wFr:"Cassant", dFr:"Proche de la limite, facilement bascul\u00e9 plus loin."},
+        ]
+      },
+      {
+        key:'dr', label:'depleted · released', labelFr:'épuisé · relâché', title:'Depleted,<br>Released', titleFr:'Épuisé,<br>Relâché', color:'var(--phys-2)',
+        words:[
+          {w:"Languid", d:"Unhurried heaviness, in no rush to move.", wFr:"Languide", dFr:"Une lourdeur sans h\u00e2te, aucune envie de bouger."},
+          {w:"Heavy", d:"Limbs carrying more weight than usual, grounded low.", wFr:"Lourd", dFr:"Les membres p\u00e8sent plus que d'habitude, ancr\u00e9 au sol."},
+          {w:"Rested", d:"Recovered \u2014 the good kind of stillness.", wFr:"Repos\u00e9", dFr:"R\u00e9cup\u00e9r\u00e9 \u2014 le bon genre d'immobilit\u00e9."},
+          {w:"Loose", d:"Unclenched, nothing held or braced.", wFr:"D\u00e9tendu", dFr:"D\u00e9nou\u00e9, rien de tenu ni de retenu."},
+          {w:"Sluggish", d:"Slow to start, moving through treacle.", wFr:"Ralenti", dFr:"Lent \u00e0 d\u00e9marrer, on avance dans la m\u00e9lasse."},
+          {w:"Mellow", d:"Soft-edged and unhurried, nothing pressing.", wFr:"Placide", dFr:"Aux contours doux, rien qui presse."},
+          {w:"Slack", d:"Let go entirely, no tension held anywhere.", wFr:"Mou", dFr:"Totalement rel\u00e2ch\u00e9, sans aucune tension retenue."},
+          {w:"Spent", d:"Emptied out, little left to draw on.", wFr:"\u00c0 plat", dFr:"Vid\u00e9 de ses r\u00e9serves, il ne reste presque rien \u00e0 puiser."},
+        ]
+      },
+    ],
+    mental: [
+      {
+        key:'ss', label:'sharp · scattered', labelFr:'net · dispersé', title:'Sharp,<br>Scattered', titleFr:'Net,<br>Dispersé', color:'var(--ment-3)',
+        words:[
+          {w:"Racing", d:"Thoughts moving faster than you can follow them.", wFr:"Emball\u00e9", dFr:"Les pens\u00e9es vont plus vite qu'on ne peut les suivre."},
+          {w:"Overstimulated", d:"Too much input, the mind struggling to filter.", wFr:"Surstimul\u00e9", dFr:"Trop de stimuli, l'esprit peine \u00e0 filtrer."},
+          {w:"Wired-thinking", d:"Sharp but scattered, sparking in several directions at once.", wFr:"Sous tension", dFr:"Net mais dispers\u00e9, qui fuse dans plusieurs directions \u00e0 la fois."},
+          {w:"Darting", d:"Attention jumping before any one thought settles.", wFr:"Papillonnant", dFr:"L'attention bondit avant qu'une pens\u00e9e ne se pose."},
+          {w:"Frantic", d:"Urgent and scattered, too much happening to track.", wFr:"Fr\u00e9n\u00e9tique", dFr:"Urgent et dispers\u00e9, trop de choses \u00e0 suivre \u00e0 la fois."},
+          {w:"Buzzing", d:"Mentally humming, thoughts overlapping in a fast current.", wFr:"Bourdonnant", dFr:"Un bourdonnement mental, les pens\u00e9es se chevauchent dans un courant rapide."},
+          {w:"Hyperalert", d:"Scanning for what\u2019s next before the present is finished.", wFr:"Hypervigilant", dFr:"\u00c0 l'aff\u00fbt de la suite avant que le pr\u00e9sent ne soit termin\u00e9."},
+          {w:"Fragmented", d:"In pieces \u2014 no single thought completing itself.", wFr:"Fragment\u00e9", dFr:"En morceaux \u2014 aucune pens\u00e9e n'aboutit."},
+        ]
+      },
+      {
+        key:'sa', label:'sharp · anchored', labelFr:'net · ancré', title:'Sharp,<br>Anchored', titleFr:'Net,<br>Ancré', color:'var(--ment-4)',
+        words:[
+          {w:"Clear", d:"Thinking moves easily, nothing in the way.", wFr:"Clair", dFr:"La pens\u00e9e avance sans obstacle."},
+          {w:"Focused", d:"Attention holding steady on one thing.", wFr:"Concentr\u00e9", dFr:"L'attention tient bon sur une seule chose."},
+          {w:"Absorbed", d:"Fully inside a task, time falls away.", wFr:"Absorb\u00e9", dFr:"Pleinement dans une t\u00e2che, le temps s'efface."},
+          {w:"Lucid", d:"Sharp and orientated, seeing the shape of things clearly.", wFr:"Lucide", dFr:"Net et orient\u00e9, on voit la forme des choses clairement."},
+          {w:"Sharp", d:"Cutting clean through what\u2019s in front of you.", wFr:"Net", dFr:"Qui tranche net \u00e0 travers ce qui se pr\u00e9sente."},
+          {w:"Engaged", d:"Leaned in, attention given willingly.", wFr:"Impliqu\u00e9", dFr:"Pench\u00e9 en avant, l'attention donn\u00e9e de bon c\u0153ur."},
+          {w:"Attentive", d:"Noticing well, taking things in accurately.", wFr:"Attentif", dFr:"Qui remarque bien, qui saisit les choses avec justesse."},
+          {w:"Precise", d:"Exact \u2014 thinking that lands where it\u2019s aimed.", wFr:"Pr\u00e9cis", dFr:"Exact \u2014 une pens\u00e9e qui atteint sa cible."},
+        ]
+      },
+      {
+        key:'fs', label:'foggy · scattered', labelFr:'flou · dispersé', title:'Foggy,<br>Scattered', titleFr:'Flou,<br>Dispersé', color:'var(--ment-1)',
+        words:[
+          {w:"Overwhelmed", d:"Too much to hold, nothing sorting itself out.", wFr:"D\u00e9bord\u00e9", dFr:"Trop \u00e0 contenir, rien ne se range de soi-m\u00eame."},
+          {w:"Distracted", d:"Attention keeps sliding off what you meant to do.", wFr:"Distrait", dFr:"L'attention glisse sans cesse loin de ce qu'on voulait faire."},
+          {w:"Cluttered", d:"Many half-formed thoughts, none of them finished.", wFr:"Encombr\u00e9", dFr:"De nombreuses pens\u00e9es \u00e0 moiti\u00e9 form\u00e9es, aucune achev\u00e9e."},
+          {w:"Adrift", d:"No clear thread to follow, mind loosely floating.", wFr:"\u00c0 la d\u00e9rive", dFr:"Aucun fil clair \u00e0 suivre, l'esprit flotte sans attache."},
+          {w:"Muddled", d:"Thoughts tangled together, hard to separate one from another.", wFr:"Embrouill\u00e9", dFr:"Des pens\u00e9es emm\u00eal\u00e9es, difficiles \u00e0 d\u00e9m\u00ealer les unes des autres."},
+          {w:"Foggy", d:"A soft haze over everything, edges unclear.", wFr:"Brumeux", dFr:"Une brume douce sur toute chose, les contours flous."},
+          {w:"Scattered", d:"In several places at once, none of them settled.", wFr:"Dispers\u00e9", dFr:"\u00c0 plusieurs endroits \u00e0 la fois, rien n'y est pos\u00e9."},
+          {w:"Confused", d:"Losing the thread of what you were following.", wFr:"Confus", dFr:"On perd le fil de ce qu'on suivait."},
+        ]
+      },
+      {
+        key:'fa', label:'foggy · anchored', labelFr:'flou · ancré', title:'Foggy,<br>Anchored', titleFr:'Flou,<br>Ancré', color:'var(--ment-2)',
+        words:[
+          {w:"Quiet", d:"Still, without much traffic passing through.", wFr:"Silencieux", dFr:"Immobile, sans grand passage."},
+          {w:"Daydreaming", d:"Gently elsewhere, not tracking the present moment.", wFr:"R\u00eaveur", dFr:"Doucement ailleurs, sans suivre le moment pr\u00e9sent."},
+          {w:"Unfocused", d:"Soft attention, nothing pulled into sharp view.", wFr:"Flottant", dFr:"Une attention douce, rien n'est net \u00e0 l'\u0153il."},
+          {w:"Settled", d:"Calm and unhurried, present without urgency.", wFr:"Pos\u00e9", dFr:"Calme et sans h\u00e2te, pr\u00e9sent sans urgence."},
+          {w:"Calm", d:"Settled and undisturbed, nothing urgent stirring.", wFr:"Calme", dFr:"Apais\u00e9 et sans trouble, rien qui s'agite."},
+          {w:"Drowsy", d:"Heavy-lidded, mind drifting toward sleep.", wFr:"Somnolent", dFr:"Les paupi\u00e8res lourdes, l'esprit glissant vers le sommeil."},
+          {w:"Hazy", d:"Softly unclear, thoughts arriving through a veil.", wFr:"Vaporeux", dFr:"Doucement flou, les pens\u00e9es arrivent voil\u00e9es."},
+          {w:"Still", d:"Quiet enough to hear very little at all.", wFr:"Tranquille", dFr:"Assez calme pour n'entendre presque rien."},
+        ]
+      },
+    ],
+    emotional: [
+      {
+        key:'hu', label:'high energy · unpleasant', labelFr:'haute énergie · déplaisant', title:'High Energy,<br>Unpleasant', titleFr:'Haute Énergie,<br>Déplaisant', color:'var(--emo-3)',
+        words:[
+          {w:"Angry", d:"Strongly bothered by something that feels unfair.", wFr:"En col\u00e8re", dFr:"Fortement d\u00e9rang\u00e9 par quelque chose qui semble injuste."},
+          {w:"Anxious", d:"On edge, bracing for something that hasn\u2019t happened yet.", wFr:"Anxieux", dFr:"\u00c0 cran, en attente d'un \u00e9v\u00e9nement qui n'est pas encore arriv\u00e9."},
+          {w:"Overwhelmed", d:"Too much arriving at once, no clear way to sort it.", wFr:"D\u00e9bord\u00e9", dFr:"Trop de choses arrivent \u00e0 la fois, sans fa\u00e7on claire de les trier."},
+          {w:"Frustrated", d:"Blocked from something you\u2019re trying to reach.", wFr:"Frustr\u00e9", dFr:"Emp\u00each\u00e9 d'atteindre quelque chose qu'on cherche \u00e0 obtenir."},
+          {w:"Stressed", d:"Under pressure, resources feeling stretched thin.", wFr:"Stress\u00e9", dFr:"Sous pression, les ressources semblent tendues \u00e0 l'extr\u00eame."},
+          {w:"Nervous", d:"Uneasy about what\u2019s coming, a low hum of worry.", wFr:"Nerveux", dFr:"Mal \u00e0 l'aise face \u00e0 ce qui s'en vient, un l\u00e9ger fond d'inqui\u00e9tude."},
+          {w:"Irritated", d:"Annoyed by something small that keeps chafing.", wFr:"Irrit\u00e9", dFr:"Agac\u00e9 par un d\u00e9tail qui persiste et qui use."},
+          {w:"Panicked", d:"Sudden, sharp alarm \u2014 the body ahead of the mind.", wFr:"Paniqu\u00e9", dFr:"Une alerte soudaine et vive \u2014 le corps en avance sur l'esprit."},
+        ]
+      },
+      {
+        key:'hp', label:'high energy · pleasant', labelFr:'haute énergie · agréable', title:'High Energy,<br>Pleasant', titleFr:'Haute Énergie,<br>Agréable', color:'var(--emo-4)',
+        words:[
+          {w:"Happy", d:"Genuinely pleased with how things are.", wFr:"Heureux", dFr:"R\u00e9ellement satisfait de la tournure des choses."},
+          {w:"Excited", d:"Looking forward to something, energy leaning toward it.", wFr:"Impatient", dFr:"Impatient de ce qui s'en vient, l'\u00e9nergie tourn\u00e9e vers l'avant."},
+          {w:"Joyful", d:"A fuller, warmer happy \u2014 it fills the room.", wFr:"Joyeux", dFr:"Un bonheur plus plein et plus chaud \u2014 il remplit la pi\u00e8ce."},
+          {w:"Enthusiastic", d:"Eager and animated, keen to get started.", wFr:"Enthousiaste", dFr:"Vif et anim\u00e9, pr\u00eat \u00e0 se lancer."},
+          {w:"Confident", d:"Sure-footed, trusting your own judgment.", wFr:"Confiant", dFr:"Assur\u00e9, on fait confiance \u00e0 son propre jugement."},
+          {w:"Proud", d:"Satisfied in something you did or were part of.", wFr:"Fier", dFr:"Satisfait de quelque chose qu'on a fait ou dont on a fait partie."},
+          {w:"Inspired", d:"Moved to create or act by something you\u2019ve felt or seen.", wFr:"Inspir\u00e9", dFr:"Pouss\u00e9 \u00e0 cr\u00e9er ou agir par quelque chose de ressenti ou de vu."},
+          {w:"Delighted", d:"Pleasantly surprised, charmed by the moment.", wFr:"Ravi", dFr:"Agr\u00e9ablement surpris, charm\u00e9 par l'instant."},
+        ]
+      },
+      {
+        key:'lu', label:'low energy · unpleasant', labelFr:'basse énergie · déplaisant', title:'Low Energy,<br>Unpleasant', titleFr:'Basse Énergie,<br>Déplaisant', color:'var(--emo-1)',
+        words:[
+          {w:"Sad", d:"A heaviness around loss or disappointment.", wFr:"Triste", dFr:"Une lourdeur autour d'une perte ou d'une d\u00e9ception."},
+          {w:"Lonely", d:"Wanting connection that isn\u2019t currently there.", wFr:"Esseul\u00e9", dFr:"Un d\u00e9sir de lien qui n'est pas l\u00e0 en ce moment."},
+          {w:"Disappointed", d:"Something hoped for didn\u2019t happen.", wFr:"D\u00e9\u00e7u", dFr:"Quelque chose d'esp\u00e9r\u00e9 ne s'est pas produit."},
+          {w:"Discouraged", d:"Losing heart about a path you were on.", wFr:"D\u00e9courag\u00e9", dFr:"On perd courage sur un chemin qu'on suivait."},
+          {w:"Bored", d:"Under-stimulated, time feels slow.", wFr:"Ennuy\u00e9", dFr:"Sous-stimul\u00e9, le temps semble lent."},
+          {w:"Tired", d:"Low on emotional reserves, wanting to withdraw.", wFr:"\u00c9teint", dFr:"Bas en r\u00e9serves \u00e9motionnelles, avec l'envie de se retirer."},
+          {w:"Hopeless", d:"Can\u2019t see a way forward from here.", wFr:"D\u00e9sesp\u00e9r\u00e9", dFr:"On ne voit plus de chemin \u00e0 partir d'ici."},
+          {w:"Numb", d:"Muted, distant from your own reactions.", wFr:"Engourdi", dFr:"\u00c9touff\u00e9, distant de ses propres r\u00e9actions."},
+        ]
+      },
+      {
+        key:'lp', label:'low energy · pleasant', labelFr:'basse énergie · agréable', title:'Low Energy,<br>Pleasant', titleFr:'Basse Énergie,<br>Agréable', color:'var(--emo-2)',
+        words:[
+          {w:"Calm", d:"Even and unhurried, nothing pulling at you.", wFr:"Calme", dFr:"\u00c9gal et sans h\u00e2te, rien qui tire dessus."},
+          {w:"Content", d:"Feeling complete, without needing anything more right now.", wFr:"Content", dFr:"Se sentir complet, sans avoir besoin de rien de plus pour l'instant."},
+          {w:"Relaxed", d:"Tension let go, at ease in the moment.", wFr:"D\u00e9contract\u00e9", dFr:"Tension rel\u00e2ch\u00e9e, \u00e0 l'aise dans l'instant."},
+          {w:"Peaceful", d:"Quiet inside, nothing at odds.", wFr:"Paisible", dFr:"Calme \u00e0 l'int\u00e9rieur, rien en d\u00e9saccord."},
+          {w:"Grateful", d:"Aware of what you have, warmed by it.", wFr:"Reconnaissant", dFr:"Conscient de ce qu'on a, r\u00e9chauff\u00e9 par cela."},
+          {w:"Secure", d:"Steady and safe, trusting what\u2019s around you.", wFr:"En s\u00e9curit\u00e9", dFr:"Stable et en confiance dans ce qui nous entoure."},
+          {w:"Satisfied", d:"Enough has been met \u2014 nothing left wanting.", wFr:"Satisfait", dFr:"Le compte y est \u2014 il ne manque plus rien."},
+          {w:"Serene", d:"A deep, settled calm that doesn\u2019t waver easily.", wFr:"Serein", dFr:"Un calme profond et stable qui ne vacille pas facilement."},
+        ]
+      },
+    ]
+  };
+
+  const dotColor = { physical: 'var(--phys-4)', mental: 'var(--ment-3)', emotional: 'var(--emo-4)' };
+
+  // ---- persistence: entries kept indefinitely, chip vocabulary too ----
+  const STORAGE_KEY_ENTRIES = 'checkinCompass.entries';
+  function chipStorageKey(lang){ return 'checkinCompass.chipVocab.' + lang; }
+
+  function todayKey(d){
+    d = d || new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function makeId(){
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function loadEntries(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY_ENTRIES);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){ return []; }
+  }
+  function saveEntries(entries){
+    try{ localStorage.setItem(STORAGE_KEY_ENTRIES, JSON.stringify(entries)); }
+    catch(e){ /* storage unavailable or full — the session still works, just won't persist */ }
+  }
+  function saveChipVocab(){
+    try{ localStorage.setItem(chipStorageKey(currentLang), JSON.stringify(CONTEXT_FIELDS)); }
+    catch(e){ /* non-fatal */ }
+  }
+  function applyStoredChipVocab(){
+    try{
+      const raw = localStorage.getItem(chipStorageKey(currentLang));
+      if(!raw) return;
+      const stored = JSON.parse(raw);
+      Object.keys(CONTEXT_FIELDS).forEach(field => {
+        if(Array.isArray(stored[field])){
+          CONTEXT_FIELDS[field].length = 0;
+          stored[field].forEach(v => CONTEXT_FIELDS[field].push(v));
+        }
+      });
+    } catch(e){ /* non-fatal, defaults stand */ }
+  }
+
+  let allEntries = loadEntries();
+  // backfill ids onto any entries saved before delete existed
+  (function backfillIds(){
+    let changed = false;
+    allEntries.forEach(e => { if(!e.id){ e.id = makeId(); changed = true; } });
+    if(changed) saveEntries(allEntries);
+  })();
+
+  // ---- structured context capture: shared across all three realms, one vocabulary per language ----
+  const CONTEXT_FIELDS_DEFAULTS = {
+    en: {
+      activity: ['Working', 'Exercising', 'Eating', 'Resting', 'Commuting', 'Socialising', 'Screen time', 'Chores'],
+      company: ['By myself', 'Partner', 'Family', 'Friends', 'Colleagues', 'Strangers'],
+      location: ['Home', 'Work', 'Outdoors', 'Commuting', 'Public place', 'Someone else\u2019s']
     },
-    carb: {
-      g:['A small handful','Up to a small handful, or one piece of fruit'],
-      a:['Two handfuls','Between one and two handfuls'],
-      r:['Three or more','Three handfuls or more'],
-      n:NONE
-    },
-    fat: {
-      g:['A thumb','Up to one thumb of nuts, cheese or spread'],
-      a:['Two thumbs','Between one and two thumbs'],
-      r:['Three or more','Three thumbs or more'],
-      n:NONE
+    fr: {
+      activity: ['Travail', 'Exercice', 'Repas', 'Repos', 'Trajet', 'Socialisation', 'Écrans', 'Tâches ménagères'],
+      company: ['Seul(e)', 'Partenaire', 'Famille', 'Amis', 'Collègues', 'Inconnus'],
+      location: ['Chez moi', 'Travail', 'Extérieur', 'En déplacement', 'Lieu public', 'Chez quelqu\u2019un d\u2019autre']
+    }
+  };
+  let CONTEXT_FIELDS = JSON.parse(JSON.stringify(CONTEXT_FIELDS_DEFAULTS[currentLang]));
+  applyStoredChipVocab();
+  let contextAnswers = { activity: null, company: null, location: null };
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function renderChipRow(field){
+    const row = document.getElementById('chips-' + field);
+    row.innerHTML = '';
+    CONTEXT_FIELDS[field].forEach(val => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip' + (contextAnswers[field] === val ? ' selected' : '');
+      chip.textContent = val;
+      chip.addEventListener('click', () => selectChip(field, val));
+      row.appendChild(chip);
+    });
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'chip-add';
+    addBtn.textContent = STRINGS[currentLang].chipAddBtn;
+    addBtn.addEventListener('click', () => showChipInput(field));
+    row.appendChild(addBtn);
+  }
+
+  function selectChip(field, val){
+    contextAnswers[field] = val;
+    renderChipRow(field);
+    updateIntakeState();
+  }
+
+  function showChipInput(field){
+    const row = document.getElementById('chips-' + field);
+    const existing = row.parentElement.querySelector('.chip-input-row');
+    if(existing) existing.remove();
+
+    const wrap = document.createElement('div');
+    wrap.className = 'chip-input-row';
+    wrap.innerHTML = `<input type="text" maxlength="24" placeholder="${escapeHtml(STRINGS[currentLang].chipInputPlaceholder)}"><button type="button" class="chip-confirm">${escapeHtml(STRINGS[currentLang].chipConfirmBtn)}</button>`;
+    row.parentElement.appendChild(wrap);
+    const input = wrap.querySelector('input');
+    input.focus();
+
+    const confirm = () => {
+      const val = input.value.trim();
+      if(!val) return;
+      if(!CONTEXT_FIELDS[field].includes(val)){
+        CONTEXT_FIELDS[field].push(val);
+        saveChipVocab();
+      }
+      contextAnswers[field] = val;
+      wrap.remove();
+      renderChipRow(field);
+      updateIntakeState();
+    };
+    wrap.querySelector('.chip-confirm').addEventListener('click', confirm);
+    input.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); confirm(); } });
+  }
+
+  function resetTrigger(){
+    document.getElementById('card-trigger').value = '';
+  }
+
+  function updateIntakeState(){
+    const ready = contextAnswers.activity && contextAnswers.company && contextAnswers.location;
+    document.getElementById('intake-continue').disabled = !ready;
+  }
+
+  // ---- card is a two-step replacement for the compass, not an addition below it ----
+  const ALL_CATEGORIES = ['physical', 'mental', 'emotional'];
+
+  function hideCompassStage(category){
+    document.getElementById('panel-' + category).querySelector('.compass-stage').style.display = 'none';
+  }
+  function showCompassStage(category){
+    document.getElementById('panel-' + category).querySelector('.compass-stage').style.display = '';
+  }
+  function showCardConfirm(){
+    document.getElementById('card-confirm').style.display = '';
+    document.getElementById('card-context').style.display = 'none';
+  }
+  function showCardContext(){
+    document.getElementById('card-confirm').style.display = 'none';
+    document.getElementById('card-context').style.display = '';
+  }
+
+  let currentCategory = 'physical';
+  let currentQuadKey = null;
+  let currentWord = null, currentDef = null;
+
+  function buildQuadgrid(panelEl, category){
+    const grid = panelEl.querySelector('.quadgrid');
+    grid.innerHTML = '';
+    DATA[category].forEach(q => {
+      const btn = document.createElement('button');
+      btn.className = 'quad';
+      btn.style.background = q.color;
+      btn.dataset.key = q.key;
+      btn.innerHTML = `<div class="quad-title">${currentLang === 'fr' ? q.titleFr : q.title}</div>`;
+      btn.addEventListener('click', () => openQuadrant(category, q.key));
+      grid.appendChild(btn);
+    });
+  }
+
+  function openQuadrant(category, key){
+    currentQuadKey = key;
+    const panelEl = document.getElementById('panel-' + category);
+    const grid = panelEl.querySelector('.quadgrid');
+    const wordpanel = panelEl.querySelector('.wordpanel');
+    const q = DATA[category].find(x => x.key === key);
+
+    grid.style.display = 'none';
+    wordpanel.style.background = q.color;
+    wordpanel.innerHTML = `
+      <div class="panel-head">
+        <button class="back-btn">${STRINGS[currentLang].backToQuadrants}</button>
+        <span class="quad-label">${currentLang === 'fr' ? q.labelFr : q.label}</span>
+      </div>
+      <div class="word-wrap"></div>
+    `;
+    wordpanel.querySelector('.back-btn').addEventListener('click', () => closeQuadrant(category));
+
+    const wrap = wordpanel.querySelector('.word-wrap');
+    q.words.forEach(item => {
+      const word = currentLang === 'fr' ? item.wFr : item.w;
+      const def = currentLang === 'fr' ? item.dFr : item.d;
+      const btn = document.createElement('button');
+      btn.className = 'word';
+      btn.dataset.word = word;
+      btn.dataset.def = def;
+      btn.textContent = word;
+      btn.addEventListener('click', () => selectWord(category, btn));
+      wrap.appendChild(btn);
+    });
+
+    wordpanel.classList.add('show');
+  }
+
+  function closeQuadrant(category){
+    currentQuadKey = null;
+    const panelEl = document.getElementById('panel-' + category);
+    panelEl.querySelector('.quadgrid').style.display = '';
+    panelEl.querySelector('.wordpanel').classList.remove('show');
+    hideCard();
+  }
+
+  function updateTriggerLabel(word){
+    const el = document.getElementById('trigger-label-text');
+    if(currentLang === 'fr'){
+      // quoting the word as a label sidesteps adjective/gender agreement entirely —
+      // "sentiment de « X »" works regardless of X's grammatical gender or form
+      el.innerHTML = `Qu\u2019est-ce qui pourrait expliquer ce sentiment de\u00a0«\u00a0${escapeHtml(word)}\u00a0»\u00a0?`;
+    } else {
+      el.innerHTML = `What might be causing you to be feeling <span id="trigger-word">${escapeHtml(word.charAt(0).toLowerCase() + word.slice(1))}</span>?`;
     }
   }
-};
 
-/* ---------- Points: edit these to suit your plan ---------- */
-const POINTS = { meal:{g:2,a:4,r:8}, snack:{g:1,a:2,r:4} };
-const DAY_GREEN_MAX = 10;   // 10 or less = green day
-const DAY_AMBER_MAX = 20;   // 11 to 20 = amber day, above = red day
-// A meal takes the colour of its worst light. Grey (none in this) never counts against it.
-// To make a protein-free meal count as red, change null to 'r'.
-const MEAL_NO_PROTEIN_COUNTS_AS = null;
-const kind = e => e.meal==='Snack' ? 'snack' : 'meal';
-function mealColour(e){
-  const v = [e.portion, e.protein, e.carb, e.fat].filter(x => x && x!=='n');
-  if(e.protein==='n' && e.meal!=='Snack' && MEAL_NO_PROTEIN_COUNTS_AS) v.push(MEAL_NO_PROTEIN_COUNTS_AS);
-  return v.includes('r') ? 'r' : v.includes('a') ? 'a' : 'g';
-}
-const mealPoints = e => POINTS[kind(e)][mealColour(e)];
-function dayColour(total){ return total <= DAY_GREEN_MAX ? 'g' : total <= DAY_AMBER_MAX ? 'a' : 'r'; }
-const MEALS = ['Breakfast','Lunch','Dinner','Snack'];
-const LOC_DEFAULTS = ['Home','Restaurant','Friends','Family','Work','On the go'];
-const KEY_E='mealCheckin.entries', KEY_L='mealCheckin.locations';
+  function selectWord(category, btn){
+    btn.closest('.word-wrap').querySelectorAll('.word').forEach(w => w.classList.remove('selected'));
+    btn.classList.add('selected');
+    currentWord = btn.dataset.word;
+    currentDef = btn.dataset.def;
+    currentCategory = category;
+    document.getElementById('card-word').textContent = currentWord;
+    document.getElementById('card-def').textContent = currentDef;
+    document.getElementById('context-word-tag').textContent = currentWord;
+    updateTriggerLabel(currentWord);
+    resetTrigger();
+    showCardConfirm();
+    document.getElementById('card').classList.add('show');
+    // compass stays visible here — only the arrow collapses it into context capture
+  }
 
-/* ---------- helpers ---------- */
-const $ = s => document.querySelector(s);
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function load(k, d){ try{ const v = JSON.parse(localStorage.getItem(k)); return v ?? d; }catch(e){ return d; } }
-function store(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
-const pad = n => String(n).padStart(2,'0');
-function localDate(d=new Date()){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
-const makeId = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),1800); }
+  function cancelWordSelection(){
+    // "back" from the confirm step: drop the word, leave the quadrant open
+    document.getElementById('card').classList.remove('show');
+    showCardConfirm();
+    currentWord = null;
+    currentDef = null;
+    resetTrigger();
+  }
 
-let entries = load(KEY_E, []);
-let locs = load(KEY_L, LOC_DEFAULTS.slice());
-let st = {meal:null, loc:null, portion:null, protein:null, carb:null, fat:null};
-let confirmId = null;
+  function backFromContext(){
+    // "back" from context capture: restore the compass, return to confirm — word stays selected
+    showCompassStage(currentCategory);
+    showCardConfirm();
+  }
 
-/* ---------- screens ---------- */
-function show(id){ ['s1','s2','s3'].forEach(s => $('#'+s).classList.toggle('hidden', s!==id)); window.scrollTo(0,0); }
-const todays = () => entries.filter(e => e.date === localDate());
+  function hideCard(){
+    document.getElementById('card').classList.remove('show');
+    showCardConfirm();
+    ALL_CATEGORIES.forEach(showCompassStage);
+    currentWord = null;
+    currentDef = null;
+    resetTrigger();
+  }
 
-function renderS1(){
-  $('#mealChips').innerHTML = MEALS.map(m => `<button class="chip${st.meal===m?' sel':''}" data-m="${esc(m)}">${esc(m)}</button>`).join('');
-  $('#locChips').innerHTML = locs.map(l => `<button class="chip${st.loc===l?' sel':''}" data-l="${esc(l)}">${esc(l)}</button>`).join('')
-    + `<button class="chip add" id="addChip">+ Add</button>`;
-  $('#go1').disabled = !(st.meal && st.loc);
-  $('#toDayWrap').classList.toggle('hidden', todays().length === 0);
-}
-function renderGroup(box, key){
-  const set = RULES[st.meal==='Snack'?'snack':'meal'][key];
-  const order = set.n ? ['g','a','r','n'] : ['g','a','r'];
-  $('#'+box).innerHTML = order.map(c =>
-    `<button class="rc ${c}${st[key]===c?' sel':''}" data-k="${key}" data-c="${c}">
-       <span class="dot"></span><span><span class="nm">${esc(set[c][0])}</span><span class="rl">${esc(set[c][1])}</span></span>
-     </button>`).join('');
-}
-function renderS2(){
-  $('#ctx').textContent = st.meal + ' · ' + st.loc;
-  renderGroup('portionBox','portion'); renderGroup('proteinBox','protein');
-  renderGroup('carbBox','carb'); renderGroup('fatBox','fat');
-  $('#save').disabled = !(st.portion && st.protein && st.carb && st.fat);
-}
-function dotsHtml(e){
-  const d = (lab,c) => `<span><i class="${c}"></i>${lab}</span>`;
-  return `<div class="dots">${d('Portion',e.portion)}${d('Protein',e.protein)}${d('Carbs',e.carb)}${d('Fat',e.fat)}</div>`;
-}
-function summaryHtml(list){
-  if(!list.length) return '';
-  const total = list.reduce((n,e)=>n+mealPoints(e),0);
-  const c = dayColour(total);
-  const word = {g:'Green day', a:'Amber day', r:'Red day'}[c];
-  const meals = list.filter(e=>e.meal!=='Snack').length, snacks = list.length - meals;
-  const left = DAY_GREEN_MAX - total;
-  const sub = left >= 0 ? `${left} left before amber` : `${-left} over the green line`;
-  return `<div class="sum ${c}"><div class="pts">${total}</div>
-    <div><div class="lbl">${word}</div><div class="sub2">${meals} meal${meals===1?'':'s'}, ${snacks} snack${snacks===1?'':'s'} · ${sub}</div></div></div>`;
-}
-function renderS3(){
-  const list = todays().sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
-  $('#summary').innerHTML = summaryHtml(list);
-  $('#list').innerHTML = list.length ? list.map(e => {
-    const t = new Date(e.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-    return `<div class="entry">
-      <div class="top">${esc(t)} · ${esc(e.location)}</div>
-      <div class="mn">${esc(e.meal)}<span class="badge"><i class="${mealColour(e)}"></i>${mealPoints(e)} pt${mealPoints(e)===1?'':'s'}</span></div>
-      ${dotsHtml(e)}
-      <button class="x" data-del="${e.id}" aria-label="Delete entry">&times;</button>
-      ${confirmId===e.id ? `<div class="confirm">Delete this entry? <button data-cancel="1">Cancel</button><button data-yes="${e.id}">Delete</button></div>` : ''}
-    </div>`;
-  }).join('') : `<p class="quiet">Nothing logged yet today.</p>`;
-}
-function resetFlow(){ st = {meal:null, loc:null, portion:null, protein:null, carb:null, fat:null}; }
+  function resetPanel(category){
+    closeQuadrant(category);
+  }
 
-/* ---------- events ---------- */
-document.addEventListener('click', ev => {
-  const b = ev.target.closest('button'); if(!b) return;
-  if(b.dataset.m){ st.meal = b.dataset.m; renderS1(); }
-  else if(b.dataset.l){ st.loc = b.dataset.l; renderS1(); }
-  else if(b.id==='addChip'){ $('#addRow').classList.remove('hidden'); $('#addInput').focus(); }
-  else if(b.id==='addOk'){ addLoc(); }
-  else if(b.id==='go1'){ st.portion=st.protein=st.carb=st.fat=null; renderS2(); show('s2'); }
-  else if(b.id==='back2'){ renderS1(); show('s1'); }
-  else if(b.dataset.k){ st[b.dataset.k] = b.dataset.c; renderS2(); }
-  else if(b.id==='save'){ saveEntry(); }
-  else if(b.id==='toDay'){ renderS3(); show('s3'); }
-  else if(b.id==='again'){ resetFlow(); $('#addRow').classList.add('hidden'); renderS1(); show('s1'); }
-  else if(b.dataset.del){ confirmId = b.dataset.del; renderS3(); }
-  else if(b.dataset.cancel){ confirmId = null; renderS3(); }
-  else if(b.dataset.yes){ entries = entries.filter(e => e.id !== b.dataset.yes); store(KEY_E, entries); confirmId = null; renderS3(); }
-  else if(b.id==='copy'){ copyText(); }
-});
-$('#addInput').addEventListener('keydown', e => { if(e.key==='Enter') addLoc(); });
-function addLoc(){
-  const v = $('#addInput').value.trim(); if(!v) return;
-  const hit = locs.find(l => l.toLowerCase()===v.toLowerCase());
-  if(!hit){ locs.push(v); store(KEY_L, locs); }
-  st.loc = hit || v; $('#addInput').value=''; $('#addRow').classList.add('hidden'); renderS1();
-}
-function saveEntry(){
-  const now = new Date();
-  entries.push({id:makeId(), date:localDate(now), timestamp:now.toISOString(),
-    meal:st.meal, location:st.loc, portion:st.portion, protein:st.protein, carb:st.carb, fat:st.fat});
-  store(KEY_E, entries);
-  resetFlow(); renderS3(); show('s3');
-}
-function copyText(){
-  const list = todays().sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
-  const head = new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const lines = [head, ''];
-  list.forEach(e => {
-    const t = new Date(e.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-    const set = RULES[e.meal==='Snack'?'snack':'meal'];
-    lines.push(`${t} ${e.meal} (${e.location}): ${TL[mealColour(e)]}, ${mealPoints(e)} pt${mealPoints(e)===1?'':'s'}`);
-    lines.push(`  Portion: ${TL[e.portion]} (${set.portion[e.portion][0]})`);
-    lines.push(`  Protein: ${TL[e.protein]} (${set.protein[e.protein][0]})`);
-    lines.push(`  Carbs: ${TL[e.carb]} (${set.carb[e.carb][0]})`);
-    lines.push(`  Fat: ${TL[e.fat]} (${set.fat[e.fat][0]})`);
-    lines.push('');
+  // ---- tabs ----
+  const tabs = document.querySelectorAll('.tab');
+  const panels = { physical: document.getElementById('panel-physical'), mental: document.getElementById('panel-mental'), emotional: document.getElementById('panel-emotional') };
+
+  document.getElementById('next-arrow').addEventListener('click', () => {
+    hideCompassStage(currentCategory);
+    showCardContext();
   });
-  const total = list.reduce((n,e)=>n+mealPoints(e),0);
-  lines.push(`Day total: ${total} points, ${ {g:'green',a:'amber',r:'red'}[dayColour(total)] } day`);
-  const text = lines.join('\n').trim();
-  (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
-    .then(()=>toast('Copied'), ()=>{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');toast('Copied');}catch(e){} ta.remove(); });
-}
+  document.getElementById('card-back-1').addEventListener('click', cancelWordSelection);
+  document.getElementById('card-back-2').addEventListener('click', backFromContext);
 
-/* ---------- start ---------- */
-$('#today').textContent = new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'});
-renderS1();
-if(todays().length){ renderS3(); show('s3'); } else { show('s1'); }
-if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+  function switchTab(target){
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === target));
+    Object.keys(panels).forEach(k => panels[k].style.display = (k === target ? '' : 'none'));
+    currentCategory = target;
+    hideCard();
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+  });
+
+  // ---- build all three panels on load ----
+  buildQuadgrid(panels.physical, 'physical');
+  buildQuadgrid(panels.mental, 'mental');
+  buildQuadgrid(panels.emotional, 'emotional');
+
+  // ---- reading log ----
+  const readingList = document.getElementById('reading-list');
+
+  const CATEGORY_ORDER = ['physical', 'mental', 'emotional'];
+  const completed = { physical: false, mental: false, emotional: false };
+
+  const STORAGE_KEY_TODAY_CONTEXT = 'checkinCompass.todayContext';
+  let sessionContext = null; // {activity, company, location} — locked in once per sitting
+
+  function saveTodayContext(ctx){
+    try{ localStorage.setItem(STORAGE_KEY_TODAY_CONTEXT, JSON.stringify({ date: todayKey(), ...ctx })); }
+    catch(e){ /* non-fatal */ }
+  }
+  function loadTodayContext(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY_TODAY_CONTEXT);
+      if(!raw) return null;
+      const stored = JSON.parse(raw);
+      return stored.date === todayKey() ? stored : null;
+    } catch(e){ return null; }
+  }
+
+  function advanceFlow(justCompleted){
+    completed[justCompleted] = true;
+    const next = CATEGORY_ORDER.find(c => !completed[c]);
+    if(next){
+      switchTab(next);
+    } else {
+      document.getElementById('checkin-flow').style.display = 'none';
+      document.getElementById('all-done').style.display = '';
+    }
+  }
+
+  function checkInAgain(){
+    // a fresh pass through the day — new context, all three realms reopened.
+    // nothing already logged is touched.
+    CATEGORY_ORDER.forEach(c => { completed[c] = false; });
+    sessionContext = null;
+    contextAnswers = { activity: null, company: null, location: null };
+    ['activity', 'company', 'location'].forEach(renderChipRow);
+    updateIntakeState();
+
+    document.getElementById('all-done').style.display = 'none';
+    document.getElementById('checkin-flow').style.display = 'none';
+    document.getElementById('context-intake').style.display = '';
+  }
+
+  function renderReadingList(){
+    const todays = allEntries.filter(e => e.date === todayKey());
+    readingList.innerHTML = '';
+    if(todays.length){
+      todays.forEach(e => readingList.appendChild(buildReadingItem(e)));
+    } else {
+      readingList.innerHTML = `<p class="reading-empty">${escapeHtml(STRINGS[currentLang].readingEmpty)}</p>`;
+    }
+  }
+
+  function buildReadingItem(entry){
+    const contextLine = [entry.activity, entry.company, entry.location].join(' \u00b7 ');
+    const item = document.createElement('div');
+    item.className = 'reading-item';
+    item.dataset.id = entry.id;
+    item.innerHTML = `
+      <div class="ri-normal">
+        <div class="ri-top">
+          <div class="dot" style="background:${dotColor[entry.category]}"></div>
+          <div class="col">${STRINGS[currentLang].catLower[entry.category]}</div>
+          <div class="ri-time">${formatEntryTime(entry.timestamp)}</div>
+          <button class="ri-delete" type="button" aria-label="${escapeHtml(STRINGS[currentLang].deleteAria)}">\u00d7</button>
+        </div>
+        <div class="val">${escapeHtml(entry.word)}</div>
+        <div class="note">${escapeHtml(contextLine)}</div>
+        ${entry.trigger ? `<div class="note"><em>${escapeHtml(entry.trigger)}</em></div>` : ''}
+      </div>
+      <div class="ri-confirm" style="display:none;">
+        <p class="ri-confirm-text">${escapeHtml(STRINGS[currentLang].deleteConfirmText)}</p>
+        <div class="ri-confirm-actions">
+          <button class="ri-cancel" type="button">${escapeHtml(STRINGS[currentLang].cancelBtn)}</button>
+          <button class="ri-confirm-delete" type="button">${escapeHtml(STRINGS[currentLang].deleteBtn)}</button>
+        </div>
+      </div>
+    `;
+
+    const normalView = item.querySelector('.ri-normal');
+    const confirmView = item.querySelector('.ri-confirm');
+
+    item.querySelector('.ri-delete').addEventListener('click', () => {
+      normalView.style.display = 'none';
+      confirmView.style.display = '';
+    });
+    item.querySelector('.ri-cancel').addEventListener('click', () => {
+      confirmView.style.display = 'none';
+      normalView.style.display = '';
+    });
+    item.querySelector('.ri-confirm-delete').addEventListener('click', () => {
+      deleteEntry(entry, item);
+    });
+
+    return item;
+  }
+
+  function deleteEntry(entry, itemEl){
+    allEntries = allEntries.filter(e => e.id !== entry.id);
+    saveEntries(allEntries);
+
+    const inLookback = itemEl.closest('#lookback-cards') !== null;
+    itemEl.remove();
+
+    if(inLookback) refreshLookbackDay();
+
+    if(!readingList.children.length){
+      readingList.innerHTML = `<p class="reading-empty">${escapeHtml(STRINGS[currentLang].readingEmpty)}</p>`;
+    }
+
+    if(entry.date !== todayKey()) return;
+
+    const todays = allEntries.filter(e => e.date === todayKey());
+    const stillAllDone = CATEGORY_ORDER.every(c => todays.some(e => e.category === c));
+    const flowHidden = document.getElementById('checkin-flow').style.display === 'none';
+
+    CATEGORY_ORDER.forEach(c => { completed[c] = todays.some(e => e.category === c); });
+
+    if(!stillAllDone && flowHidden){
+      // that realm is genuinely unfinished again — reopen the flow on it
+      document.getElementById('all-done').style.display = 'none';
+      document.getElementById('checkin-flow').style.display = '';
+      switchTab(CATEGORY_ORDER.find(c => !completed[c]));
+    }
+  }
+
+  // ---- copy today's reading as plain text ----
+  function formatEntryTime(iso){
+    return new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  }
+  function formatDateHeading(date){
+    return date.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  function formatTodayHeader(){
+    return formatDateHeading(new Date());
+  }
+  function dateFromKey(key){
+    const [y, m, d] = key.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+  function buildReadingText(){
+    const todays = allEntries.filter(e => e.date === todayKey());
+    const lines = [`Check-In Compass \u2014 ${formatTodayHeader()}`, ''];
+    if(!todays.length){
+      lines.push(STRINGS[currentLang].nothingLoggedToday);
+    } else {
+      todays.forEach((e, i) => {
+        const label = STRINGS[currentLang].catUpper[e.category];
+        lines.push(`${label} (${formatEntryTime(e.timestamp)}) \u2014 ${e.word}`);
+        lines.push([e.activity, e.company, e.location].join(' \u00b7 '));
+        if(e.trigger) lines.push(e.trigger);
+        if(i < todays.length - 1) lines.push('');
+      });
+    }
+    return lines.join('\n');
+  }
+  function fallbackCopy(text, done){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try{ document.execCommand('copy'); done(); } catch(e){ /* silent — clipboard unavailable */ }
+    document.body.removeChild(ta);
+  }
+  document.getElementById('copy-reading-btn').addEventListener('click', () => {
+    const btn = document.getElementById('copy-reading-btn');
+    const text = buildReadingText();
+    const done = () => {
+      const original = btn.textContent;
+      btn.textContent = STRINGS[currentLang].copiedLabel;
+      btn.disabled = true;
+      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1500);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
+  });
+
+  // ---- look back: browse entries one day at a time, arrows to move between them ----
+  let lookbackDays = [];   // dates with entries, excluding today, ascending
+  let lookbackIndex = -1;
+
+  function computeLookbackDays(){
+    const dates = new Set();
+    allEntries.forEach(e => { if(e.date !== todayKey()) dates.add(e.date); });
+    return Array.from(dates).sort();
+  }
+
+  function renderLookbackDay(){
+    const cardsWrap = document.getElementById('lookback-cards');
+    const heading = document.getElementById('lookback-date-heading');
+    const prevBtn = document.getElementById('lookback-prev');
+    const nextBtn = document.getElementById('lookback-next');
+    cardsWrap.innerHTML = '';
+
+    if(!lookbackDays.length){
+      heading.textContent = '';
+      cardsWrap.innerHTML = `<p class="lookback-empty">${escapeHtml(STRINGS[currentLang].lookbackEmpty)}</p>`;
+      prevBtn.classList.add('hidden');
+      nextBtn.classList.add('hidden');
+      return;
+    }
+
+    const dateKey = lookbackDays[lookbackIndex];
+    heading.textContent = formatDateHeading(dateFromKey(dateKey));
+
+    allEntries
+      .filter(e => e.date === dateKey)
+      .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+      .forEach(e => cardsWrap.appendChild(buildReadingItem(e)));
+
+    prevBtn.classList.toggle('hidden', lookbackIndex <= 0);
+    nextBtn.classList.toggle('hidden', lookbackIndex >= lookbackDays.length - 1);
+  }
+
+  function refreshLookbackDay(){
+    // a delete may have emptied the day being viewed — recompute and land somewhere sensible
+    const currentDateKey = lookbackDays[lookbackIndex];
+    lookbackDays = computeLookbackDays();
+    if(!lookbackDays.length){
+      lookbackIndex = -1;
+    } else {
+      const idx = lookbackDays.indexOf(currentDateKey);
+      lookbackIndex = idx !== -1 ? idx : Math.min(lookbackIndex, lookbackDays.length - 1);
+    }
+    renderLookbackDay();
+  }
+
+  function openLookback(){
+    document.getElementById('main-view').style.display = 'none';
+    document.getElementById('lookback').style.display = '';
+    lookbackDays = computeLookbackDays();
+    lookbackIndex = lookbackDays.length - 1; // most recent previous day first
+    renderLookbackDay();
+  }
+  function closeLookback(){
+    document.getElementById('lookback').style.display = 'none';
+    document.getElementById('main-view').style.display = '';
+  }
+
+  document.getElementById('lookback-open-btn').addEventListener('click', openLookback);
+  document.getElementById('lookback-back-btn').addEventListener('click', closeLookback);
+  document.getElementById('lookback-prev').addEventListener('click', () => {
+    if(lookbackIndex > 0){ lookbackIndex -= 1; renderLookbackDay(); }
+  });
+  document.getElementById('lookback-next').addEventListener('click', () => {
+    if(lookbackIndex < lookbackDays.length - 1){ lookbackIndex += 1; renderLookbackDay(); }
+  });
+
+  // ---- context intake: answered once, before the first quadrant ----
+  ['activity', 'company', 'location'].forEach(renderChipRow);
+  updateIntakeState();
+
+  document.getElementById('intake-continue').addEventListener('click', () => {
+    if(!contextAnswers.activity || !contextAnswers.company || !contextAnswers.location) return;
+    sessionContext = { activity: contextAnswers.activity, company: contextAnswers.company, location: contextAnswers.location };
+    saveTodayContext(sessionContext);
+    document.getElementById('context-intake').style.display = 'none';
+    document.getElementById('checkin-flow').style.display = '';
+    switchTab('physical');
+  });
+
+  document.getElementById('check-in-again-btn').addEventListener('click', checkInAgain);
+
+  document.getElementById('save-btn').addEventListener('click', () => {
+    if(!currentWord || !sessionContext) return;
+    const savedCategory = currentCategory;
+    const trigger = document.getElementById('card-trigger').value.trim();
+
+    const entry = {
+      id: makeId(),
+      date: todayKey(),
+      timestamp: new Date().toISOString(),
+      category: savedCategory,
+      word: currentWord,
+      activity: sessionContext.activity,
+      company: sessionContext.company,
+      location: sessionContext.location,
+      trigger: trigger
+    };
+    allEntries.push(entry);
+    saveEntries(allEntries);
+
+    if(readingList.querySelector('.reading-empty')) readingList.innerHTML = '';
+    readingList.appendChild(buildReadingItem(entry));
+
+    resetPanel(savedCategory);
+    advanceFlow(savedCategory);
+  });
+
+  // ---- rebuild today's state from storage on load ----
+  function hydrateToday(){
+    const key = todayKey();
+    const todays = allEntries.filter(e => e.date === key);
+
+    renderReadingList();
+
+    CATEGORY_ORDER.forEach(c => {
+      completed[c] = todays.some(e => e.category === c);
+    });
+
+    const allDone = CATEGORY_ORDER.every(c => completed[c]);
+    if(allDone){
+      document.getElementById('context-intake').style.display = 'none';
+      document.getElementById('checkin-flow').style.display = 'none';
+      document.getElementById('all-done').style.display = '';
+      return;
+    }
+
+    // recover this sitting's context — from storage, or from today's first entry as a fallback
+    const stored = loadTodayContext();
+    if(stored){
+      sessionContext = { activity: stored.activity, company: stored.company, location: stored.location };
+    } else if(todays.length){
+      sessionContext = { activity: todays[0].activity, company: todays[0].company, location: todays[0].location };
+    }
+
+    if(sessionContext){
+      document.getElementById('context-intake').style.display = 'none';
+      document.getElementById('checkin-flow').style.display = '';
+      const next = CATEGORY_ORDER.find(c => !completed[c]);
+      if(next !== 'physical') switchTab(next);
+    }
+    // otherwise: context-intake stays visible (its default state) and checkin-flow stays hidden
+  }
+  hydrateToday();
+
+  // ---- language toggle: one flag switches strings, colours (via data-lang), and chip vocab ----
+  function setLang(lang){
+    currentLang = lang;
+    try{ localStorage.setItem(STORAGE_KEY_LANG, lang); } catch(e){ /* non-fatal */ }
+
+    document.documentElement.lang = lang;
+    document.documentElement.dataset.lang = lang;
+    document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+    document.getElementById('lang-fr').classList.toggle('active', lang === 'fr');
+    document.getElementById('lang-en').setAttribute('aria-pressed', lang === 'en');
+    document.getElementById('lang-fr').setAttribute('aria-pressed', lang === 'fr');
+
+    applyI18nStatic();
+
+    // a language switch mid-selection is an edge case, not worth preserving state through —
+    // close any open quadrant or card cleanly instead
+    ALL_CATEGORIES.forEach(closeQuadrant);
+    hideCard();
+
+    buildQuadgrid(panels.physical, 'physical');
+    buildQuadgrid(panels.mental, 'mental');
+    buildQuadgrid(panels.emotional, 'emotional');
+
+    CONTEXT_FIELDS = JSON.parse(JSON.stringify(CONTEXT_FIELDS_DEFAULTS[currentLang]));
+    applyStoredChipVocab();
+    ['activity', 'company', 'location'].forEach(renderChipRow);
+
+    renderReadingList();
+
+    if(document.getElementById('lookback').style.display !== 'none'){
+      renderLookbackDay();
+    }
+  }
+
+  document.getElementById('lang-en').addEventListener('click', () => setLang('en'));
+  document.getElementById('lang-fr').addEventListener('click', () => setLang('fr'));
+
+  // apply the persisted (or default) language on load
+  setLang(currentLang);
+
+
+  // ---- offline: register the service worker ----
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => { /* non-fatal */ });
+    });
+  }
 </script>
+
 </body>
 </html>
